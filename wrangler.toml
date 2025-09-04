@@ -1,0 +1,37 @@
+# This configuration file is for PRODUCTION DEPLOYMENTS.
+name = "evm-wallet-panel-next"
+compatibility_date = "2024-03-20"
+
+# Point to the worker script that handles API calls and serves static assets.
+main = "workers/src/index.ts"
+
+# Declaratively bind the static asset directory to the worker.
+# This makes the assets available via `env.ASSETS`.
+[assets]
+directory = "out"
+
+[observability.logs]
+enabled = true
+
+# Production bindings
+[[kv_namespaces]]
+binding = "EVM_PANEL_KV"
+id = "db1d81cf8e2b4991bbe8af9a039e5974"
+
+[vars]
+ENVIRONMENT = "production"
+NETWORKS = """
+[
+  { "id": 1, "name": "Ethereum", "rpcUrl": "https://eth.drpc.org", "symbol": "ETH", "explorerUrl": "https://etherscan.io" },
+  { "id": 11155111, "name": "Sepolia", "rpcUrl": "https://sepolia.drpc.org", "symbol": "ETH", "explorerUrl": "https://sepolia.etherscan.io" },
+  { "id": 56, "name": "BSC", "rpcUrl": "https://bsc.drpc.org", "symbol": "BNB", "explorerUrl": "https://bscscan.com" },
+  { "id": 137, "name": "Polygon", "rpcUrl": "https://polygon.drpc.org", "symbol": "MATIC", "explorerUrl": "https://polygonscan.com" },
+  { "id": 42161, "name": "Arbitrum", "rpcUrl": "https://arbitrum.drpc.org", "symbol": "ETH", "explorerUrl": "https://arbiscan.io" },
+  { "id": 43114, "name": "Avalanche", "rpcUrl": "https://avalanche.drpc.org", "symbol": "AVAX", "explorerUrl": "https://snowtrace.io" },
+  { "id": 250, "name": "Fantom", "rpcUrl": "https://fantom.drpc.org", "symbol": "FTM", "explorerUrl": "https://ftmscan.com" },
+  { "id": 10, "name": "Optimism", "rpcUrl": "https://optimism.drpc.org", "symbol": "ETH", "explorerUrl": "https://optimistic.etherscan.io" },
+  { "id": 8453, "name": "Base", "rpcUrl": "https://base.drpc.org", "symbol": "ETH", "explorerUrl": "https://basescan.org" },
+  { "id": 10143, "name": "Monad Testnet", "rpcUrl": "https://monad-testnet.drpc.org", "symbol": "tMONAD", "explorerUrl": "https://testnet.monadexplorer.com/" },
+  { "id": 3940, "name": "Nexus Testnet", "rpcUrl": "https://nexus-testnet.g.alchemy.com/public", "symbol": "NEX", "explorerUrl": "https://testnet3.explorer.nexus.xyz/" }
+]
+"""

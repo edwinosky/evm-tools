@@ -1,0 +1,47 @@
+import type { Metadata } from 'next'
+import './globals.css'
+import { headers } from 'next/headers'
+import { ContextProvider } from '@/context'
+import StyledComponentsRegistry from '@/lib/registry'
+import Navbar from './components/Navbar'
+import HistoryPanel from './components/HistoryPanel'
+import ActionPanel from './components/ActionPanel'
+
+
+export const metadata: Metadata = {
+  title: 'AppKit Example App',
+  description: 'Powered by Reown'
+}
+
+export default function RootLayout({
+  children
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+
+  const headersObj = headers();
+  const cookies = headersObj.get('cookie')
+
+  return (
+    <html lang="en">
+      <body>
+        <StyledComponentsRegistry>
+          <ContextProvider>
+            <Navbar />
+            <div className="grid grid-cols-12 gap-4 p-4">
+              <div className="col-span-3">
+                <HistoryPanel />
+              </div>
+              <div className="col-span-6">
+                {children}
+              </div>
+              <div className="col-span-3">
+                <ActionPanel selectedToken={null} />
+              </div>
+            </div>
+          </ContextProvider>
+        </StyledComponentsRegistry>
+      </body>
+    </html>
+  )
+}

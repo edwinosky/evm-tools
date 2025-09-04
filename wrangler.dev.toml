@@ -1,0 +1,36 @@
+# This configuration file is for LOCAL DEVELOPMENT ONLY.
+# It tells `wrangler dev` to run your worker's source code directly.
+
+name = "evm-wallet-panel-next-dev"
+main = "workers/src/index.ts" # Point directly to the source file
+compatibility_date = "2024-03-20"
+
+[dev]
+ip = "127.0.0.1"
+port = 8787
+
+# Bindings needed for local development
+[[kv_namespaces]]
+binding = "EVM_PANEL_KV"
+id = "db1d81cf8e2b4991bbe8af9a039e5974"
+preview_id = "db1d81cf8e2b4991bbe8af9a039e5974"
+
+[vars]
+ENVIRONMENT = "development"
+# For local dev, you can temporarily add secrets here if needed
+PINATA_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI4ZDQ5MzVkOC04YzNlLTQxOGUtYTllNS0xM2VlZDM5Mjk5NGUiLCJlbWFpbCI6ImVkd2lucGl0dGVyc0B5YWhvby5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGUkExIn0seyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJOWUMxIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiMWM3YzY2YWQ2ZDQzNmVhMGQxODIiLCJzY29wZWRLZXlTZWNyZXQiOiJlYzVkOWY2YTNjMDZkZjBjY2Q4NzQyODE5OWEzNWRkYmFmNTQ3ODFlNDQ4MjRkOTQyZDhiN2FiYzJlYWNkMDAxIiwiZXhwIjoxNzg1MzU1NTkzfQ.SqwM3e6Y4rz3JDSkuzAvteJpZvbnUpah-F9WoD1j5gQ"
+NETWORKS = """
+[
+  { "id": 1, "name": "Ethereum", "rpcUrl": "https://eth.drpc.org", "symbol": "ETH", "explorerUrl": "https://etherscan.io" },
+  { "id": 11155111, "name": "Sepolia", "rpcUrl": "https://sepolia.drpc.org", "symbol": "ETH", "explorerUrl": "https://sepolia.etherscan.io" },
+  { "id": 56, "name": "BSC", "rpcUrl": "https://bsc-drpc.org", "symbol": "BNB", "explorerUrl": "https://bscscan.com" },
+  { "id": 137, "name": "Polygon", "rpcUrl": "https://polygon.drpc.org", "symbol": "MATIC", "explorerUrl": "https://polygonscan.com" },
+  { "id": 42161, "name": "Arbitrum", "rpcUrl": "https://arbitrum.drpc.org", "symbol": "ETH", "explorerUrl": "https://arbiscan.io" },
+  { "id": 43114, "name": "Avalanche", "rpcUrl": "https://avalanche.drpc.org", "symbol": "AVAX", "explorerUrl": "https://snowtrace.io" },
+  { "id": 250, "name": "Fantom", "rpcUrl": "https://fantom.drpc.org", "symbol": "FTM", "explorerUrl": "https://ftmscan.com" },
+  { "id": 10, "name": "Optimism", "rpcUrl": "https://optimism.drpc.org", "symbol": "ETH", "explorerUrl": "https://optimistic.etherscan.io" },
+  { "id": 8453, "name": "Base", "rpcUrl": "https://base.drpc.org", "symbol": "ETH", "explorerUrl": "https://basescan.org" },
+  { "id": 10143, "name": "Monad Testnet", "rpcUrl": "https://monad-testnet.drpc.org", "symbol": "tMONAD", "explorerUrl": "https://testnet.monadexplorer.com/" },
+  { "id": 3940, "name": "Nexus Testnet", "rpcUrl": "https://nexus-testnet.g.alchemy.com/public", "symbol": "NEX", "explorerUrl": "https://testnet3.explorer.nexus.xyz/" }
+]
+"""
