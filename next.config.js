@@ -3,6 +3,7 @@ const nextConfig = {
   compiler: {
     styledComponents: true,
   },
+  output: 'export',
   webpack: (config) => {
     config.externals.push("pino-pretty", "lokijs", "encoding");
     return config;
