@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "precompile": "node server/precompile.js",
+    "precompile": "node server/precompile.js && node server/compileAirdrop.js",
     "deploy": "npm run precompile && npm run build && wrangler deploy",
     "dev:worker": "wrangler dev --config wrangler.dev.toml"
   },
