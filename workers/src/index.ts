@@ -18,6 +18,7 @@ export interface Env {
   EVM_PANEL_KV: KVNamespace;
   ENVIRONMENT: string;
   PINATA_JWT: string;
+  ETHERSCAN_API_KEY: string; // Single Etherscan API key for all compatible networks
   NETWORKS: string; // JSON string of Network[]
   ASSETS: { fetch: (req: Request) => Promise<Response> };
 }
@@ -65,41 +66,115 @@ async function handleCompileContract(request: Request, env: Env): Promise<Respon
 }
 
 async function handleStorage(request: Request, env: Env): Promise<Response> {
-    const { method, url } = request;
-    const walletAddress = request.headers.get('X-Wallet-Address');
-    if (!walletAddress || !isValidWalletAddress(walletAddress)) return errorResponse('Valid X-Wallet-Address header required', 400);
+    try {
+        const url = new URL(request.url);
+        const pathParts = url.pathname.split('/').filter(p => p);
+        const walletAddress = request.headers.get('X-Wallet-Address');
 
-    const key = new URL(url).searchParams.get('key');
+        console.log('=== STORAGE DEBUG ===');
+        console.log('Raw URL:', request.url);
+        console.log('Path parts:', pathParts);
+        console.log('Wallet address header:', walletAddress);
 
-    if (method === 'GET') {
-        if (key) { // Get single item
-            const value = await env.EVM_PANEL_KV.get(createUserKey(walletAddress, key));
-            return value ? new Response(value, { headers: jsonResponse({}, 200).headers }) : errorResponse('Key not found', 404);
-        } else { // Get all items
-            const list = await env.EVM_PANEL_KV.list({ prefix: `${walletAddress}:` });
-            const items: Record<string, any> = {};
-            for (const item of list.keys) {
-                const value = await env.EVM_PANEL_KV.get(item.name);
-                items[item.name.replace(`${walletAddress}:`, '')] = value ? JSON.parse(value) : null;
-            }
-            return jsonResponse(items);
+        if (!walletAddress || !isValidWalletAddress(walletAddress)) {
+            console.log('ERROR: Invalid wallet address:', walletAddress);
+            return errorResponse('Valid X-Wallet-Address header required', 400);
         }
-    }
 
-    if (method === 'POST') {
-        const data = await request.json() as { key: string; value: any };
-        if (!data.key) return errorResponse('Key is required in request body', 400);
-        await env.EVM_PANEL_KV.put(createUserKey(walletAddress, data.key), JSON.stringify(data.value));
-        return jsonResponse({ success: true });
-    }
+        const key = url.searchParams.get('key');
+        console.log('Storage request:', request.method, 'key:', key);
 
-    if (method === 'DELETE') {
-        if (!key) return errorResponse('Key URL parameter is required for DELETE', 400);
-        await env.EVM_PANEL_KV.delete(createUserKey(walletAddress, key));
-        return jsonResponse({ success: true });
-    }
+        if (request.method === 'GET') {
+            if (key) { // Get single item
+                console.log('Getting single item for key:', key);
+                const value = await env.EVM_PANEL_KV.get(createUserKey(walletAddress, key));
+                if (value) {
+                    console.log('Found value for key:', key);
+                    // Try to parse JSON, fallback to raw value if fails
+                    try {
+                        return new Response(value, { headers: jsonResponse({}, 200).headers });
+                    } catch (e) {
+                        console.log('Value is not JSON, returning raw:', value.substring(0, 100));
+                        return new Response(value, { headers: jsonResponse({}, 200).headers });
+                    }
+                } else {
+                    console.log('Key not found:', key);
+                    return errorResponse('Key not found', 404);
+                }
+            } else { // Get all items
+                console.log('Getting all items for wallet:', walletAddress);
+                const list = await env.EVM_PANEL_KV.list({ prefix: `${walletAddress}:` });
+                console.log('Found keys:', list.keys.length);
 
-    return errorResponse('Method not allowed for /storage', 405);
+                const items: Record<string, any> = {};
+                for (const item of list.keys) {
+                    const value = await env.EVM_PANEL_KV.get(item.name);
+                    if (value) {
+                        try {
+                            items[item.name.replace(`${walletAddress}:`, '')] = JSON.parse(value);
+                        } catch (e) {
+                            console.log('Failed to parse value for key:', item.name, 'value length:', value.length);
+                            items[item.name.replace(`${walletAddress}:`, '')] = value; // Raw string fallback
+                        }
+                    } else {
+                        items[item.name.replace(`${walletAddress}:`, '')] = null;
+                    }
+                }
+                console.log('Returning items:', Object.keys(items).length);
+                return jsonResponse(items);
+            }
+        }
+
+        if (request.method === 'POST') {
+            console.log('POST storage request');
+            const data = await request.json() as { key: string; value: any };
+            console.log('POST data:', { key: data.key, valueType: typeof data.value, hasValue: !!data.value });
+
+            if (!data.key) {
+                console.log('ERROR: No key provided in POST data');
+                return errorResponse('Key is required in request body', 400);
+            }
+
+            try {
+                const userKey = createUserKey(walletAddress, data.key);
+                const valueString = JSON.stringify(data.value);
+                console.log('Saving to KV:', userKey, 'value length:', valueString.length);
+
+                await env.EVM_PANEL_KV.put(userKey, valueString);
+                console.log('Successfully saved to KV');
+                return jsonResponse({ success: true });
+            } catch (error) {
+                console.log('ERROR saving to KV:', error);
+                return errorResponse('Failed to save data: ' + (error as Error).message, 500);
+            }
+        }
+
+        if (request.method === 'DELETE') {
+            if (!key) {
+                console.log('ERROR: No key provided for DELETE');
+                return errorResponse('Key URL parameter is required for DELETE', 400);
+            }
+
+            try {
+                const userKey = createUserKey(walletAddress, key);
+                console.log('Deleting from KV:', userKey);
+                await env.EVM_PANEL_KV.delete(userKey);
+                return jsonResponse({ success: true });
+            } catch (error) {
+                console.log('ERROR deleting from KV:', error);
+                return errorResponse('Failed to delete data: ' + (error as Error).message, 500);
+            }
+        }
+
+        console.log('ERROR: Method not allowed:', request.method);
+        return errorResponse('Method not allowed for /storage', 405);
+
+    } catch (error) {
+        console.error('CRITICAL ERROR in handleStorage:', error);
+        // Return more detailed error for debugging
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return errorResponse(`Storage error: ${errorMessage}`, 500);
+    }
 }
 
 async function handleUploadToIpfs(request: Request, env: Env): Promise<Response> {
@@ -720,6 +795,7 @@ export default {
         if (route === 'send-transaction') return await handleSendTransaction(request, env);
         if (route === 'sign-permit') return await handleSignPermit(request, env);
 if (route === 'deploy-contract') return await handleDeployContract(request, env);
+if (route === 'discover-balances') return await handleDiscoverBalancesV2(request, env); // Renamed for clarity
 if (route === 'networks' && request.method === 'GET') return await handleGetNetworks(request, env);
 if (route === 'networks' && (request.method === 'POST' || request.method === 'DELETE')) return await handleManageNetworks(request, env);
 if (route === 'contract-type') return await handleContractType(request, env);
@@ -735,6 +811,253 @@ if (route === 'health') return jsonResponse({ status: 'ok' });
     return errorResponse('API Route not found.', 404);
   },
 };
+
+// --- New Handler for Token Discovery using Etherscan-compatible APIs ---
+
+async function handleDiscoverBalancesV2(request: Request, env: Env): Promise<Response> {
+    console.log('=== DEBUGGING handleDiscoverBalancesV2 ===');
+
+    const { address, rpcUrl } = await request.json() as { address: string; rpcUrl: string };
+    console.log('Received params:', { address: !!address, rpcUrl: !!rpcUrl });
+
+    if (!address || !rpcUrl) {
+        console.log('Validation failed: missing address or rpcUrl');
+        return errorResponse('address and rpcUrl are required', 400);
+    }
+
+    console.log('ETHERSCAN_API_KEY exists:', !!env.ETHERSCAN_API_KEY);
+    console.log('ETHERSCAN_API_KEY length:', env.ETHERSCAN_API_KEY?.length || 0);
+
+    if (!env.ETHERSCAN_API_KEY || env.ETHERSCAN_API_KEY.trim() === '') {
+        console.log('Validation failed: ETHERSCAN_API_KEY is empty or undefined');
+        return errorResponse('ETHERSCAN API key is not configured or empty', 500);
+    }
+
+    try {
+        console.log('Starting token discovery process...');
+        const networks = await env.EVM_PANEL_KV.get<Network[]>(NETWORKS_KV_KEY, 'json') || DEFAULT_NETWORKS;
+        const chainId = await getChainId(rpcUrl);
+        console.log('Chain ID obtained:', chainId);
+
+        const network = networks.find(n => n.id === chainId);
+        console.log('Network found:', !!network);
+
+        if (!network || !network.explorerUrl) {
+            console.log('Network validation failed');
+            return errorResponse(`Network with chainId ${chainId} not configured or missing explorerUrl`, 400);
+        }
+
+        // Simplified: Use Etherscan V2 API for ALL networks with chainId
+        // According to Etherscan docs: ONE base URL for all chains
+        const apiUrlTemplate = 'https://api.etherscan.io/v2/api?chainid={chainid}&module=account&action=tokentx&address={address}&endblock=999999999&sort=desc&page=1&offset=50&apikey={apikey}';
+        console.log('Using unified Etherscan V2 template for all chains');
+
+        // Optimized: No startblock filter - use last 50 transactions (most recent and relevant)
+        const apiUrl = apiUrlTemplate
+            .replace('{chainid}', chainId.toString())
+            .replace('{address}', address)
+            .replace('{apikey}', env.ETHERSCAN_API_KEY);
+
+        console.log('Final API URL (without key):', apiUrl.replace(env.ETHERSCAN_API_KEY, '[HIDDEN]'));
+
+        console.log('Making API request to:', apiUrl.replace(env.ETHERSCAN_API_KEY, '[API_KEY]'));
+
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.log('API response not ok:', response.status, errorText);
+            throw new Error(`Etherscan API request failed: ${errorText}`);
+        }
+
+        const result = await response.json() as any;
+        console.log('API response status:', result.status);
+        console.log('API response message:', result.message);
+
+        if (result.status !== '1') {
+            // Etherscan API returns status '0' with a message on error
+            console.log('API returned error status:', result);
+            throw new Error(`Etherscan API Error: ${result.message} - ${result.result}`);
+        }
+
+        console.log('Received', result.result?.length || 0, 'token transactions');
+
+        // Process tokentx results: group by token contract address
+        const tokenMap = new Map<string, { symbol: string; decimals: string; transactions: any[] }>();
+
+        // Group transactions by token contract
+        for (const tx of result.result || []) {
+            const tokenAddress = tx.contractAddress;
+            if (!tokenMap.has(tokenAddress)) {
+                tokenMap.set(tokenAddress, {
+                    symbol: tx.tokenSymbol,
+                    decimals: tx.tokenDecimal,
+                    transactions: []
+                });
+            }
+            tokenMap.get(tokenAddress)!.transactions.push(tx);
+        }
+
+        console.log('Grouped into', tokenMap.size, 'unique tokens');
+
+        // Load existing data to avoid duplicates
+        const existingErc20Key = `${address}:${chainId}_erc20_tokens`;
+        const existingNftKey = `${address}:${chainId}_nft_addresses`;
+
+        let existingErc20Tokens: string[] = [];
+        let existingNftAddresses: string[] = [];
+
+        try {
+            console.log('🎯 Loading existing data for comparison...');
+            const existingErc20Data = await env.EVM_PANEL_KV.get(existingErc20Key);
+            const existingNftData = await env.EVM_PANEL_KV.get(existingNftKey);
+
+            if (existingErc20Data) {
+                const parsed = JSON.parse(existingErc20Data);
+                existingErc20Tokens = parsed.value || parsed;
+                console.log('✅ Found', existingErc20Tokens.length, 'existing ERC20 tokens');
+            }
+
+            if (existingNftData) {
+                const parsed = JSON.parse(existingNftData);
+                existingNftAddresses = parsed.value || parsed;
+                console.log('✅ Found', existingNftAddresses.length, 'existing NFT addresses');
+            }
+        } catch (error) {
+            console.log('❌ Could not load existing data, will proceed with full discovery');
+        }
+
+        // Create a client to check current balances for the tokens we found
+        const client = createPublicClient({
+            transport: http(rpcUrl),
+        });
+
+        // Separate ERC20 vs ERC721/ERC1155 tokens intelligently
+        const erc20Balances: any[] = [];
+        const nftBalances: any[] = [];
+        const existingTokensSet = new Set([...existingErc20Tokens, ...existingNftAddresses]);
+        console.log('🔄 Comparing with existing tokens:', existingTokensSet.size);
+
+        // For each unique token, check type and compare with existing
+        for (const [tokenAddress, tokenInfo] of tokenMap) {
+            // Skip if already exists
+            if (existingTokensSet.has(tokenAddress)) {
+                console.log('⏭️ Skipped existing token:', tokenInfo.symbol);
+                continue;
+            }
+
+            try {
+                console.log('🔍 Analyzing token:', tokenAddress, tokenInfo.symbol);
+
+                // Check ERC721/ERC1155 support first
+                const erc721InterfaceId: `0x${string}` = '0x80ac58cd';
+                const erc1155InterfaceId: `0x${string}` = '0xd9b67a26';
+
+                const supportsInterfaceAbi = [{
+                    name: 'supportsInterface',
+                    type: 'function',
+                    stateMutability: 'view',
+                    inputs: [{ type: 'bytes4', name: 'interfaceId' }],
+                    outputs: [{ type: 'bool', name: '' }],
+                }] as const;
+
+                let isNft = false;
+
+                try {
+                    const [supports721, supports1155] = await Promise.all([
+                        client.readContract({
+                            address: tokenAddress as `0x${string}`,
+                            abi: supportsInterfaceAbi,
+                            functionName: 'supportsInterface',
+                            args: [erc721InterfaceId],
+                        }).catch(() => false),
+                        client.readContract({
+                            address: tokenAddress as `0x${string}`,
+                            abi: supportsInterfaceAbi,
+                            functionName: 'supportsInterface',
+                            args: [erc1155InterfaceId],
+                        }).catch(() => false),
+                    ]);
+
+                    if (supports721 || supports1155) {
+                        isNft = true;
+                        console.log('🎨 Detected NFT:', tokenAddress, tokenInfo.symbol);
+                    }
+                } catch (e) {
+                    console.log(`Could not check interfaces for ${tokenAddress}, assuming ERC20`);
+                }
+
+                // Try to get balance for either ERC20 or NFT
+                if (isNft) {
+                    // For NFTs, just add if we found transactions
+                    console.log('🧩 Added NFT:', tokenAddress, tokenInfo.symbol);
+                    nftBalances.push({
+                        contract: tokenAddress,
+                        symbol: tokenInfo.symbol,
+                        type: 'NFT',
+                    });
+
+                    // Save new NFT addresses
+                    const updatedNfts = [...existingNftAddresses, tokenAddress];
+                    await env.EVM_PANEL_KV.put(existingNftKey, JSON.stringify({ value: updatedNfts }));
+                    console.log('💾 Saved new NFT addresses to DB');
+                } else {
+                    // ERC20 token balance check
+                    try {
+                        const balance = await client.readContract({
+                            address: tokenAddress as `0x${string}`,
+                            abi: erc20Abi,
+                            functionName: 'balanceOf',
+                            args: [address as `0x${string}`],
+                        });
+
+                        const balanceValue = balance.toString();
+                        console.log('💰 ERC20 balance:', tokenAddress, balanceValue);
+
+                        // Only include tokens with balance > 0
+                        if (BigInt(balanceValue) > BigInt(0)) {
+                            erc20Balances.push({
+                                token: tokenAddress,
+                                balance: balanceValue,
+                                symbol: tokenInfo.symbol,
+                                decimals: parseInt(tokenInfo.decimals || '18', 10),
+                            });
+
+                            // Save new ERC20 tokens
+                            const updatedTokens = [...existingErc20Tokens, tokenAddress];
+                            await env.EVM_PANEL_KV.put(existingErc20Key, JSON.stringify({ value: updatedTokens }));
+                            console.log('💾 Saved new ERC20 tokens to DB');
+                        }
+                    } catch (balanceError) {
+                        console.log('❌ Could not get ERC20 balance for:', tokenAddress);
+                    }
+                }
+
+            } catch (error) {
+                console.error('❌ Error analyzing token:', tokenAddress, error);
+            }
+        }
+
+        const summary = {
+            erc20Tokens: erc20Balances.length,
+            nftContracts: nftBalances.length,
+            existingTokens: existingTokensSet.size,
+            newTokensAdded: erc20Balances.length + nftBalances.length
+        };
+
+        console.log('📊 Discovery summary:', summary);
+
+        return jsonResponse({
+            erc20Balances,
+            nftBalances,
+            summary,
+            warning: "Only ERC20 balances returned in erc20Balances. NFTs require manual addition."
+        });
+
+    } catch (error) {
+        console.error('Error in handleDiscoverBalancesV2:', error);
+        return errorResponse('Failed to discover balances: ' + (error as Error).message, 500);
+    }
+}
 
 async function handleContractType(request: Request, env: Env): Promise<Response> {
     const { rpcUrl, contractAddress } = await request.json() as { rpcUrl: string; contractAddress: `0x${string}` };

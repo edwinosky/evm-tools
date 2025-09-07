@@ -21,15 +21,14 @@ const LanguageSelector: React.FC = () => {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 rounded-md bg-muted hover:bg-muted/80 text-foreground"
+        className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted/50 transition-colors"
+        title={`${current?.name} - Click to change language`}
       >
-        <Globe size={16} />
-        <span>{current?.flag}</span>
-        <span className="hidden sm:block">{current?.name}</span>
+        <span className="text-lg">{current?.flag}</span>
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-1 w-48 bg-background border border-border rounded-md shadow-lg z-50">
+        <div className="absolute right-0 mt-1 w-40 bg-background border border-border rounded-md shadow-lg z-50">
           {languages.map((language) => (
             <button
               key={language.code}
@@ -37,14 +36,14 @@ const LanguageSelector: React.FC = () => {
                 changeLanguage(language.code);
                 setIsOpen(false);
               }}
-              className={`w-full flex items-center space-x-3 px-4 py-2 text-left hover:bg-muted ${
+              className={`w-full flex items-center space-x-2 px-3 py-2 text-left hover:bg-muted transition-colors ${
                 currentLanguage === language.code ? 'bg-primary/10 text-primary' : 'text-foreground'
               }`}
             >
-              <span>{language.flag}</span>
-              <span>{language.name}</span>
+              <span className="text-base">{language.flag}</span>
+              <span className="text-sm">{language.name}</span>
               {currentLanguage === language.code && (
-                <span className="ml-auto text-primary text-lg">✓</span>
+                <span className="ml-auto text-primary text-sm">✓</span>
               )}
             </button>
           ))}

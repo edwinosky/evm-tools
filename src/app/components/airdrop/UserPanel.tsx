@@ -67,38 +67,38 @@ const UserPanel: React.FC<UserPanelProps> = ({ contractAddress, contractType, to
 
   useEffect(() => {
     if (isSuccess) {
-      setMessage(t('successMessage', 'userPanel'));
+      setMessage(t('successMessage', 'airdropPage'));
       onAction(); // Refresh parent component data
     }
     if (error) {
-      setMessage(`${t('errorPrefix', 'userPanel')}${error.message}`);
+      setMessage(`${t('errorPrefix', 'airdropPage')}${error.message}`);
     }
   }, [isSuccess, error, onAction, t]);
 
   const { functionName, buttonText } = useMemo(() => {
     switch (contractType) {
       case 'AirdropWithdraw':
-        return { functionName: 'withdraw', buttonText: t('withdrawButton', 'userPanel') };
+        return { functionName: 'withdraw', buttonText: t('withdrawButton', 'airdropPage') };
       case 'AirdropVesting':
-        return { functionName: 'claimVest', buttonText: t('claimVestButton', 'userPanel') };
+        return { functionName: 'claimVest', buttonText: t('claimVestButton', 'airdropPage') };
       case 'AirdropStaking':
-        return { functionName: 'claimStaking', buttonText: t('claimStakingButton', 'userPanel') };
+        return { functionName: 'claimStaking', buttonText: t('claimStakingButton', 'airdropPage') };
       default:
-        return { functionName: 'claimTokens', buttonText: t('claimTokensButton', 'userPanel') };
+        return { functionName: 'claimTokens', buttonText: t('claimTokensButton', 'airdropPage') };
     }
   }, [contractType, t]);
 
   const handleAction = () => {
     const amount = parseFloat(claimableAmount);
     if (amount <= 0) {
-      setMessage(t('noAllocationMessage', 'userPanel'));
+      setMessage(t('noAllocationMessage', 'airdropPage'));
       return;
     }
     if (hasClaimed) {
-      setMessage(t('alreadyClaimedMessage', 'userPanel'));
+      setMessage(t('alreadyClaimedMessage', 'airdropPage'));
       return;
     }
-    setMessage(t('processingMessage', 'userPanel'));
+    setMessage(t('processingMessage', 'airdropPage'));
     writeContract({
       address: contractAddress,
       abi: selectedAbi,
@@ -111,19 +111,19 @@ const UserPanel: React.FC<UserPanelProps> = ({ contractAddress, contractType, to
 
   return (
     <div className="panel p-4 border rounded-lg bg-background-secondary mt-4">
-      <h2 className="text-xl font-bold mb-4">{t('title', 'userPanel')}</h2>
-      {message && <p className={`text-sm ${message.toLowerCase().startsWith('error') || message.toLowerCase().startsWith(t('errorPrefix', 'userPanel').toLowerCase()) ? 'text-red-500' : 'text-green-500'}`}>{message}</p>}
+      <h2 className="text-xl font-bold mb-4">{t('userPanel_title', 'airdropPage')}</h2>
+      {message && <p className={`text-sm ${message.toLowerCase().startsWith('error') || message.toLowerCase().startsWith(t('userPanel_errorPrefix', 'airdropPage').toLowerCase()) ? 'text-red-500' : 'text-green-500'}`}>{message}</p>}
 
       <div className="info-box bg-muted p-3 rounded-md">
         {contractType === 'AirdropVesting' ? (
           <>
-            <p>{t('totalAllocationPrefix', 'userPanel')}: <span className="font-semibold">{totalAllocationAmount}</span> Tokens</p>
-            <p>{t('claimableVestedPrefix', 'userPanel')}: <span className="font-semibold">{claimableAmount}</span> Tokens</p>
+            <p>{t('userPanel_totalAllocationPrefix', 'airdropPage')}: <span className="font-semibold">{totalAllocationAmount}</span> Tokens</p>
+            <p>{t('userPanel_claimableVestedPrefix', 'airdropPage')}: <span className="font-semibold">{claimableAmount}</span> Tokens</p>
           </>
         ) : (
-          <p>{t('claimablePrefix', 'userPanel')}: <span className="font-semibold">{claimableAmount}</span> Tokens</p>
+          <p>{t('userPanel_claimablePrefix', 'airdropPage')}: <span className="font-semibold">{claimableAmount}</span> Tokens</p>
         )}
-        <p>{t('claimedPrefix', 'userPanel')}: <span className="font-semibold">{hasClaimed ? t('yes', 'userPanel') : t('no', 'userPanel')}</span></p>
+        <p>{t('userPanel_claimedPrefix', 'airdropPage')}: <span className="font-semibold">{hasClaimed ? t('userPanel_yes', 'airdropPage') : t('userPanel_no', 'airdropPage')}</span></p>
       </div>
 
       <button
@@ -131,10 +131,10 @@ const UserPanel: React.FC<UserPanelProps> = ({ contractAddress, contractType, to
         disabled={hasClaimed || parseFloat(claimableAmount) <= 0 || isLoading}
         className="mt-4 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 w-full"
       >
-        {isLoading ? t('processing', 'userPanel') : buttonText}
+        {isLoading ? t('userPanel_processing', 'airdropPage') : buttonText}
       </button>
 
-      {parseFloat(claimableAmount) <= 0 && !hasClaimed && <p className="text-xs text-muted-foreground mt-2">{t('noTokensMessage', 'userPanel')}</p>}
+      {parseFloat(claimableAmount) <= 0 && !hasClaimed && <p className="text-xs text-muted-foreground mt-2">{t('userPanel_noTokensMessage', 'airdropPage')}</p>}
     </div>
   );
 };

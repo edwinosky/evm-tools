@@ -126,4 +126,37 @@ export const api = {
     });
     return handleResponse(response);
   },
+
+  discoverBalances: async (address: string, rpcUrl: string) => {
+    const response = await fetch(`${API_BASE_URL}/discover-balances`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ address, rpcUrl }),
+    });
+    return handleResponse(response);
+  },
+
+  getStorageData: async (address: string) => {
+    const response = await fetch(`${API_BASE_URL}/storage`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Wallet-Address': address
+      },
+    });
+    return handleResponse(response);
+  },
+
+  saveStorageData: async (address: string, key: string, value: any) => {
+    const storageKey = `${address}:${key}`;
+    const response = await fetch(`${API_BASE_URL}/storage?key=${storageKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Wallet-Address': address
+      },
+      body: JSON.stringify({ key, value }),
+    });
+    return handleResponse(response);
+  },
 };

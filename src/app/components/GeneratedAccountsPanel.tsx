@@ -2,10 +2,12 @@
 
 import React, { useState } from 'react';
 import { useAppContext } from '@/context/AppContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { Copy, Trash2 } from 'lucide-react';
 
 const GeneratedAccountsPanel = () => {
   const { generatedAccounts, generateAccount, removeGeneratedAccount } = useAppContext();
+  const { t } = useLanguage();
   const [isGenerating, setIsGenerating] = useState(false);
   const [copiedValue, setCopiedValue] = useState<string | null>(null);
 
@@ -28,31 +30,32 @@ const GeneratedAccountsPanel = () => {
 
   return (
     <div className="border rounded-lg p-4">
-      <h3 className="text-lg font-medium mb-4">Generated Accounts</h3>
-      <button 
-        onClick={handleGenerateAccount} 
+      <h3 className="text-lg font-medium mb-4">{t('panelTitle', 'generatedAccounts')}</h3>
+      <button
+        onClick={handleGenerateAccount}
         disabled={isGenerating}
         className="mb-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
       >
-        {isGenerating ? 'Generating...' : 'Generate New Account'}
+        {isGenerating ? t('generatingAccount', 'generatedAccounts') : t('generateNewAccount', 'generatedAccounts')}
       </button>
-      
+
       {generatedAccounts.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No accounts generated yet.</p>
+        <p className="text-muted-foreground text-sm">{t('noAccountsGenerated', 'generatedAccounts')}</p>
       ) : (
         <div>
           {generatedAccounts.map((account) => (
             <div key={account.address} className="p-2 border border-border rounded-md mb-2">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium truncate" title={account.address}>
-                  Address: {account.address}
+                  {t('address', 'generatedAccounts')}: {account.address}
                 </p>
                 <div className="flex items-center">
                   <button
                     onClick={() => copyToClipboard(account.address, 'address')}
                     className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-accent"
+                    title={copiedValue === 'address' ? t('copied', 'common') : undefined}
                   >
-                    {copiedValue === 'address' ? 'Copied!' : <Copy size={16} />}
+                    {copiedValue === 'address' ? t('copied', 'common') : <Copy size={16} />}
                   </button>
                   <button
                     onClick={() => removeGeneratedAccount(account.address)}
@@ -64,13 +67,14 @@ const GeneratedAccountsPanel = () => {
               </div>
               <div className="flex items-center justify-between mt-2">
                 <p className="text-xs text-muted-foreground truncate" title={account.privateKey}>
-                  Private Key: ************
+                  {t('privateKey', 'generatedAccounts')}: ************
                 </p>
                 <button
                   onClick={() => copyToClipboard(account.privateKey, 'privateKey')}
                   className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-accent"
+                  title={copiedValue === 'privateKey' ? t('copied', 'common') : undefined}
                 >
-                  {copiedValue === 'privateKey' ? 'Copied!' : <Copy size={16} />}
+                  {copiedValue === 'privateKey' ? t('copied', 'common') : <Copy size={16} />}
                 </button>
               </div>
             </div>

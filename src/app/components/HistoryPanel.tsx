@@ -9,8 +9,59 @@ import { useState } from 'react';
 const HistoryPanel = () => {
   const { transactionHistory, clearTransactionHistory, removeTransaction, selectContract } = useAppContext();
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
+
+  // Function to format timestamps in localized format
+  const formatLocalizedTime = (timestamp: number) => {
+    const date = new Date(timestamp);
+
+    // Get user's locale from current language
+    const locale = currentLanguage === 'zh' ? 'zh-CN' :
+                   currentLanguage === 'ko' ? 'ko-KR' :
+                   currentLanguage === 'es' ? 'es-ES' : 'en-US';
+
+    // Use 12-hour format for English, 24-hour for others
+    const timeOptions = {
+      hour: '2-digit' as const,
+      minute: '2-digit' as const,
+      second: '2-digit' as const,
+      hour12: currentLanguage === 'en'
+    };
+
+    return date.toLocaleTimeString(locale, timeOptions);
+  };
+
+  // Function to translate transaction types dynamically
+  const translateTransactionType = (type: string) => {
+    // Handle different transaction types
+    if (type.startsWith('Send')) {
+      // Extract token name from "Send BAR" -> "BAR"
+      const tokenName = type.replace('Send ', '');
+      return `${t('sendPrefix')} ${tokenName}`;
+    }
+    if (type.startsWith('Deploy')) {
+      if (type.includes('AirdropStandard')) return t('deployAirdropStandard');
+      if (type.includes('AirdropWithFee')) return t('deployAirdropWithFee');
+      if (type.includes('AirdropVesting')) return t('deployAirdropVesting');
+      if (type.includes('AirdropStaking')) return t('deployAirdropStaking');
+      if (type.includes('AirdropWithdraw')) return t('deployAirdropWithdraw');
+      return `${t('deployPrefix')} ${type.replace('Deploy ', '')}`;
+    }
+    if (type.includes('Interaction')) {
+      if (type.includes('Mint')) return t('mintInteraction');
+      if (type.includes('Transfer')) return t('transferInteraction');
+      if (type.includes('Burn')) return t('burnInteraction');
+      if (type.includes('Approve')) return t('approveInteraction');
+      if (type.includes('Create Token')) return t('createTokenInteraction');
+      if (type.includes('Create NFT')) return t('createNftInteraction');
+      if (type.includes('Airdrop')) return t('airdropInteraction');
+      return type.replace(' Interaction', ` ${t('interactionType').toLowerCase()}`);
+    }
+
+    // Return original if no translation found
+    return type;
+  };
 
   const handleInteractClick = (tx: any) => {
     if (tx.contractAddress && tx.contractAbi && tx.contractFeatures) {
@@ -38,8 +89,25 @@ const HistoryPanel = () => {
 
   return (
     <>
+      {/* Header with clear history button */}
+      {transactionHistory.length > 0 && (
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold text-card-foreground">{t('transactionHistory')}</h3>
+          <button
+            onClick={handleClearHistory}
+            className="px-3 py-1 text-sm bg-red-500/10 hover:bg-red-500/20 text-red-600 border border-red-200 rounded-md transition-colors"
+            title={t('clearAllHistory')}
+          >
+            🗑️ {t('clearAllHistory')}
+          </button>
+        </div>
+      )}
+
       {transactionHistory.length === 0 ? (
-        <p className="text-muted-foreground">{t('noTransactionsYet')}</p>
+        <div className="text-center py-8">
+          <h3 className="text-lg font-semibold text-muted-foreground mb-2">{t('transactionHistory')}</h3>
+          <p className="text-muted-foreground">{t('noTransactionsYet')}</p>
+        </div>
       ) : (
         <ul>
           {transactionHistory.slice().reverse().map((tx, index) => {
@@ -48,9 +116,9 @@ const HistoryPanel = () => {
             return (
               <li key={index} className="mb-4 p-3 rounded-lg bg-muted relative group">
                 <div className="flex justify-between items-center">
-                  <p className="text-sm font-semibold text-card-foreground">{tx.type}</p>
+                  <p className="text-sm font-semibold text-card-foreground">{translateTransactionType(tx.type)}</p>
                   <span className="text-xs text-muted-foreground">
-                    {new Date(tx.timestamp).toLocaleTimeString()}
+                    {formatLocalizedTime(tx.timestamp)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between mt-1">

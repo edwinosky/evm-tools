@@ -10,3 +10,7 @@ git push -u origin main
 ### precompile and push directo a cloudflare, sin pasar por github
 
 npm run precompile && npm run build && wrangler deploy
+
+git add .
+git commit -m " fixes"
+git push origin main

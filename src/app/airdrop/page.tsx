@@ -218,7 +218,7 @@ const AirdropPage = () => {
     }
     setShowDeployPanel(false);
       setMessage(t('newContractDeployedMessage', 'airdropPage').replace('%address%', newAddress).replace('%deployedContractType%', deployedContractType));
-  }, [setMessage, setContractAddress, setContractType, setInputValue, setIsOwner, setContractData, setAirdropTokenAddress, setIsAirdropSetup, setShowDeployPanel]);
+  }, [setMessage, setContractAddress, setContractType, setInputValue, setIsOwner, setContractData, setAirdropTokenAddress, setIsAirdropSetup, setShowDeployPanel, t]);
 
   const handleLoadContract = () => {
     if (isAddress(inputValue)) {

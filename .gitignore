@@ -3,7 +3,7 @@
 server/node_modules
 /.pnp
 .pnp.js
-
+codes.txt
 # testing
 /coverage
 

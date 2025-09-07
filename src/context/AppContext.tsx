@@ -89,6 +89,7 @@ interface AppContextType {
   // Actions
   addTokenAddress: (address: string) => void;
   addNftAddress: (address: string) => void;
+  setDiscoveredTokens: (tokenAddresses: string[], nftAddresses: string[]) => void;
   selectContract: (address: string | null) => void;
   connectWithPrivateKey: (rpcUrl: string, privateKey: string) => Promise<void>;
   disconnect: () => void;
@@ -293,6 +294,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [connectionMode, walletAddress, privateKeyData?.address]);
 
   const addTokenAddress = (address: string) => {
+    if (tokenAddresses.includes(address)) return;
     const newTokens = [...tokenAddresses, address];
     setTokenAddresses(newTokens);
     cloudflareStorage.setItem('tokenAddresses', newTokens).catch(error => {
@@ -301,10 +303,31 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addNftAddress = (address: string) => {
+    if (nftAddresses.includes(address)) return;
     const newNfts = [...nftAddresses, address];
     setNftAddresses(newNfts);
     cloudflareStorage.setItem('nftAddresses', newNfts).catch(error => {
       console.error('Error saving NFT addresses to Cloudflare KV:', error);
+    });
+  };
+
+  const setDiscoveredTokens = (discoveredTokenAddresses: string[], discoveredNftAddresses: string[]) => {
+    // Combine new addresses with existing ones, ensuring no duplicates
+    const newTokenSet = new Set([...tokenAddresses, ...discoveredTokenAddresses]);
+    const newNftSet = new Set([...nftAddresses, ...discoveredNftAddresses]);
+
+    const newTokens = Array.from(newTokenSet);
+    const newNfts = Array.from(newNftSet);
+
+    setTokenAddresses(newTokens);
+    setNftAddresses(newNfts);
+
+    // Persist the updated lists to Cloudflare KV
+    cloudflareStorage.setItem('tokenAddresses', newTokens).catch(error => {
+      console.error('Error saving discovered token addresses to Cloudflare KV:', error);
+    });
+    cloudflareStorage.setItem('nftAddresses', newNfts).catch(error => {
+      console.error('Error saving discovered NFT addresses to Cloudflare KV:', error);
     });
   };
 
@@ -530,6 +553,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     nftAddresses,
     addTokenAddress,
     addNftAddress,
+    setDiscoveredTokens,
     selectContract,
     connectWithPrivateKey,
     disconnect,
