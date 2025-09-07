@@ -114,8 +114,8 @@ const SESSION_STORAGE_KEY = 'evm-wallet-session';
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [connectionMode, setConnectionMode] = useState<ConnectionMode>(null);
   const [privateKeyData, setPrivateKeyData] = useState<PrivateKeyData | null>(null);
-  const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(typeof window !== 'undefined' ? window.innerWidth > 768 : true);
-  const [isActionPanelOpen, setIsActionPanelOpen] = useState(typeof window !== 'undefined' ? window.innerWidth > 768 : true);
+  const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false);
+  const [isActionPanelOpen, setIsActionPanelOpen] = useState(false);
   const [transactionHistory, setTransactionHistory] = useState<Transaction[]>([]);
   const [selectedToken, setSelectedToken] = useState<Token | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -184,7 +184,25 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       console.error("Failed to parse session storage:", e);
       sessionStorage.removeItem(SESSION_STORAGE_KEY);
     }
+
+    const handleResize = () => {
+      const isDesktop = window.innerWidth > 768;
+      setIsHistoryPanelOpen(isDesktop);
+      setIsActionPanelOpen(isDesktop);
+    };
+
+    // Set initial
+    handleResize();
+
+    // Add resize event listener
+    window.addEventListener('resize', handleResize);
+
     setIsInitialLoad(false);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   // Sync with RainbowKit connection state

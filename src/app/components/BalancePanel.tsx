@@ -328,7 +328,7 @@ const BalancePanel = () => {
     <div className="bg-card text-card-foreground p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4">{t('panelTitle', 'balance')}</h2>
 
-      <div className="flex gap-2 mb-4">
+      <div className="flex flex-col sm:flex-row gap-2 mb-4">
         <button
           onClick={handleDiscoverTokens}
           className="px-4 py-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80"
@@ -345,7 +345,7 @@ const BalancePanel = () => {
           className="flex-grow p-2 border border-border rounded-md bg-background"
           disabled={isAdding}
         />
-        <button onClick={handleAddContract} className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90" disabled={isAdding}>
+        <button onClick={handleAddContract} className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto" disabled={isAdding}>
           {isAdding ? t('addingToken', 'balance') : t('addToken', 'balance')}
         </button>
       </div>

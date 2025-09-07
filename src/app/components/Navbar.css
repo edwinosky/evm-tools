@@ -1,0 +1,116 @@
+.navbar {
+  padding: 16px;
+  position: sticky;
+  top: 8px;
+  z-index: 9;
+}
+
+.navbar .container {
+  width: 100%;
+  min-height: 60px;
+  border-radius: 20px;
+  background-color: rgba(21, 3, 51, 0.8);
+  backdrop-filter: blur(8px);
+  display: block;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  box-shadow: 0 0 32px -8px rgba(102, 47, 255, 0.8);
+  box-sizing: border-box;
+  border: 1px solid rgba(206, 212, 218, 0.8);
+  position: relative;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 15px;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #F5F5F5;
+}
+
+.nav-link {
+  padding: 8px 12px;
+  color: #F5F5F5;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.3s ease, transform 0.2s;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  border-radius: 5px;
+}
+
+.nav-link:hover {
+  color: #662fff;
+  transform: scale(1.05);
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-shrink: 0;
+}
+
+/* ConnectButton wrapper to prevent overflow */
+.nav-right .connect-button-container {
+  display: flex;
+  align-items: center;
+  max-width: 200px; /* Limit width for connects */
+  overflow: hidden;
+}
+
+.nav-right button {
+  background-color: transparent;
+  border: none;
+  color: #F5F5F5;
+  padding: 8px 12px;
+  font-size: 16px;
+  font-weight: 600;
+  transition: color 0.3s ease, transform 0.2s;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+
+.nav-right button:hover {
+  color: #662fff;
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .navbar .container {
+    padding: 0 10px;
+  }
+
+  .nav-left {
+    gap: 10px;
+  }
+
+  .nav-right {
+    gap: 10px;
+  }
+
+  .nav-right .connect-button-container {
+    max-width: 150px; /* Smaller on mobile */
+  }
+
+  /* Hide some elements on very small screens to prevent overflow */
+  @media (max-width: 480px) {
+    .nav-left .nav-link:nth-child(2) { /* Hide Home icon */
+      display: none;
+    }
+  }
+}
