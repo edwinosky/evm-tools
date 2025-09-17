@@ -14,3 +14,5 @@ npm run precompile && npm run build && wrangler deploy
 git add .
 git commit -m " fixes"
 git push origin main
+
+npx wrangler dev

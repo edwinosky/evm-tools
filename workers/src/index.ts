@@ -13,6 +13,31 @@ interface Network {
   explorerUrl: string;
 }
 
+// --- Alphas Admin Interfaces ---
+interface AdminRole {
+  userAddress: string;
+  role: 'super_admin' | 'editor' | 'viewer' | 'moderator';
+  permissions: string[];
+}
+
+interface AlphaProject {
+  id: string;
+  name: string;
+  category: 'DeFi' | 'NFT' | 'GameFi' | 'Tools' | 'Gaming' | 'Infrastructure' | 'Other';
+  website: string;
+  description?: string;
+  socialLinks: {
+    twitter?: string;
+    telegram?: string;
+    discord?: string;
+    github?: string;
+  };
+  status: 'draft' | 'pending' | 'approved' | 'rejected';
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // --- Environment Interface ---
 export interface Env {
   EVM_PANEL_KV: KVNamespace;
@@ -227,6 +252,88 @@ const DEFAULT_NETWORKS: Network[] = [
 ];
 
 const NETWORKS_KV_KEY = "networks_list";
+
+// --- Alphas Admin Constants ---
+const ALPHA_ADMIN_ROLES_KEY = "alpha_admin_roles";
+const ALPHA_PROJECTS_GLOBAL_KEY = "alpha_projects_global";
+const AUDIT_LOG_KEY = "alpha_audit_log";
+
+// --- Alphas Admin Auth Functions ---
+// Check if user has required permission
+function hasPermission(userRole: string, requiredPermission: string): boolean {
+  const rolePermissions = {
+    'super_admin': ['all'],
+    'editor': ['projects:crud', 'projects:approve'],
+    'moderator': ['projects:read', 'projects:flag'],
+    'viewer': ['projects:read']
+  };
+
+  const permissions = rolePermissions[userRole as keyof typeof rolePermissions] || [];
+  return permissions.includes('all') || permissions.includes(requiredPermission);
+}
+
+// Get user role from wallet address
+async function getUserRole(walletAddress: string, env: Env): Promise<string | null> {
+  try {
+    const rolesData = await env.EVM_PANEL_KV.get(ALPHA_ADMIN_ROLES_KEY, 'json') as { users: AdminRole[] } | null;
+    if (!rolesData?.users) return null;
+
+    const userRole = rolesData.users.find(user => user.userAddress.toLowerCase() === walletAddress.toLowerCase());
+    return userRole?.role || null;
+  } catch (error) {
+    console.error('Error getting user role:', error);
+    return null;
+  }
+}
+
+// Middleware to check auth and permissions
+async function checkAuthAndPermission(request: Request, env: Env, requiredPermission: string): Promise<{ userAddress: string; role: string } | null> {
+  const walletAddress = request.headers.get('X-Wallet-Address');
+  if (!walletAddress || !isValidWalletAddress(walletAddress)) {
+    return null;
+  }
+
+  const role = await getUserRole(walletAddress, env);
+  if (!role) {
+    return null;
+  }
+
+  if (!hasPermission(role, requiredPermission)) {
+    return null;
+  }
+
+  return { userAddress: walletAddress, role };
+}
+
+// Audit log function
+async function logAuditAction(env: Env, action: string, userAddress: string, details: any = {}): Promise<void> {
+  try {
+    const timestamp = new Date().toISOString();
+    const auditEntry = {
+      timestamp,
+      userAddress,
+      action,
+      details
+    };
+
+    // Get existing audit log
+    let auditLog: any[] = [];
+    const existingLog = await env.EVM_PANEL_KV.get(AUDIT_LOG_KEY, 'json');
+    if (existingLog) {
+      auditLog = Array.isArray(existingLog) ? existingLog : [];
+    }
+
+    // Add new entry and keep only last 1000 entries
+    auditLog.push(auditEntry);
+    if (auditLog.length > 1000) {
+      auditLog = auditLog.slice(-1000);
+    }
+
+    await env.EVM_PANEL_KV.put(AUDIT_LOG_KEY, JSON.stringify(auditLog));
+  } catch (error) {
+    console.error('Error logging audit action:', error);
+  }
+}
 
 async function handleGetNetworks(request: Request, env: Env): Promise<Response> {
   try {
@@ -772,6 +879,254 @@ async function handleSignPermit(request: Request, env: Env): Promise<Response> {
     }
 }
 
+// --- Alphas Admin Handlers ---
+
+// Initialization endpoint - only works if no roles exist yet
+async function handleAlphasInitAdmin(request: Request, env: Env): Promise<Response> {
+  if (request.method !== 'POST') {
+    return errorResponse('Method not allowed', 405);
+  }
+
+  try {
+    // Check if any roles already exist
+    const rolesData = await env.EVM_PANEL_KV.get(ALPHA_ADMIN_ROLES_KEY, 'json') as { users: AdminRole[] } | null;
+    if (rolesData && Array.isArray(rolesData.users) && rolesData.users.length > 0) {
+      return errorResponse('Admin system already initialized', 403);
+    }
+
+    const { walletAddress, name } = await request.json() as { walletAddress: string; name: string };
+
+    if (!walletAddress || !isValidWalletAddress(walletAddress)) {
+      return errorResponse('Valid wallet address is required', 400);
+    }
+
+    // Initialize first super admin
+    const initialAdminData = {
+      users: [{
+        userAddress: walletAddress.toLowerCase(),
+        role: 'super_admin' as const,
+        permissions: ['all']
+      }]
+    };
+
+    await env.EVM_PANEL_KV.put(ALPHA_ADMIN_ROLES_KEY, JSON.stringify(initialAdminData));
+
+    // Audit log
+    await logAuditAction(env, 'initialize_admin_system', walletAddress, { action: 'first_admin_created', name });
+
+    return jsonResponse({
+      success: true,
+      message: `Super Admin initialized for address: ${walletAddress}`,
+      role: 'super_admin'
+    });
+  } catch (error) {
+    console.error('Error initializing admin:', error);
+    return errorResponse('Failed to initialize admin system', 500);
+  }
+}
+
+async function handleAlphasAdminRoles(request: Request, env: Env): Promise<Response> {
+  // Check if user has admin permission
+  const auth = await checkAuthAndPermission(request, env, 'all');
+  if (!auth) {
+    return errorResponse('Unauthorized: Admin role required', 403);
+  }
+
+  if (request.method === 'GET') {
+    try {
+      const rolesData = await env.EVM_PANEL_KV.get(ALPHA_ADMIN_ROLES_KEY, 'json');
+      const roles = rolesData || { users: [] };
+      return jsonResponse(roles);
+    } catch (error) {
+      console.error('Error getting admin roles:', error);
+      return errorResponse('Failed to retrieve admin roles', 500);
+    }
+  }
+
+  if (request.method === 'POST') {
+    try {
+      const { userAddress, role } = await request.json() as { userAddress: string; role: string };
+
+      if (!userAddress || !role) {
+        return errorResponse('userAddress and role are required', 400);
+      }
+
+      if (!isValidWalletAddress(userAddress)) {
+        return errorResponse('Invalid wallet address', 400);
+      }
+
+      const validRoles = ['super_admin', 'editor', 'viewer', 'moderator'];
+      if (!validRoles.includes(role)) {
+        return errorResponse('Invalid role', 400);
+      }
+
+      // Get existing roles
+      let rolesData = await env.EVM_PANEL_KV.get(ALPHA_ADMIN_ROLES_KEY, 'json') as { users: AdminRole[] } | null;
+      if (!rolesData) {
+        rolesData = { users: [] };
+      }
+
+      // Check if user already exists
+      const existingIndex = rolesData.users.findIndex(u => u.userAddress.toLowerCase() === userAddress.toLowerCase());
+
+      if (existingIndex >= 0) {
+        rolesData.users[existingIndex].role = role as AdminRole['role'];
+      } else {
+        rolesData.users.push({
+          userAddress,
+          role: role as AdminRole['role'],
+          permissions: []
+        });
+      }
+
+      await env.EVM_PANEL_KV.put(ALPHA_ADMIN_ROLES_KEY, JSON.stringify(rolesData));
+
+      // Audit log
+      await logAuditAction(env, 'update_admin_role', auth.userAddress, { targetUser: userAddress, newRole: role });
+
+      return jsonResponse({ success: true });
+    } catch (error) {
+      console.error('Error updating admin roles:', error);
+      return errorResponse('Failed to update admin roles', 500);
+    }
+  }
+
+  return errorResponse('Method not allowed', 405);
+}
+
+async function handleAlphasProjects(request: Request, env: Env): Promise<Response> {
+  if (request.method === 'GET') {
+    // Public read access for approved projects
+    try {
+      const projectsData = await env.EVM_PANEL_KV.get(ALPHA_PROJECTS_GLOBAL_KEY, 'json') as { projects: AlphaProject[] } | null;
+      if (!projectsData?.projects) {
+        return jsonResponse({ projects: [] });
+      }
+
+      // Filter to only approved projects for public access
+      const approvedProjects = projectsData.projects.filter(p => p.status === 'approved');
+      return jsonResponse({ projects: approvedProjects });
+    } catch (error) {
+      console.error('Error getting projects:', error);
+      return errorResponse('Failed to retrieve projects', 500);
+    }
+  }
+
+  // Check admin permission for write operations
+  const auth = await checkAuthAndPermission(request, env, 'projects:crud');
+  if (!auth) {
+    return errorResponse('Unauthorized: Editor role required', 403);
+  }
+
+  if (request.method === 'POST') {
+    try {
+      const projectData = await request.json() as Omit<AlphaProject, 'id' | 'createdAt' | 'updatedAt'>;
+
+      if (!projectData.name || !projectData.category || !projectData.website) {
+        return errorResponse('name, category, and website are required', 400);
+      }
+
+      const projectId = `project_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      const newProject: AlphaProject = {
+        ...projectData,
+        id: projectId,
+        createdBy: auth.userAddress,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Get existing projects
+      let projectsData = await env.EVM_PANEL_KV.get(ALPHA_PROJECTS_GLOBAL_KEY, 'json') as { projects: AlphaProject[] } | null;
+      if (!projectsData) {
+        projectsData = { projects: [] };
+      }
+
+      projectsData.projects.push(newProject);
+      await env.EVM_PANEL_KV.put(ALPHA_PROJECTS_GLOBAL_KEY, JSON.stringify(projectsData));
+
+      // Audit log
+      await logAuditAction(env, 'create_project', auth.userAddress, { projectId, projectName: newProject.name });
+
+      return jsonResponse({ project: newProject });
+    } catch (error) {
+      console.error('Error creating project:', error);
+      return errorResponse('Failed to create project', 500);
+    }
+  }
+
+  if (request.method === 'PUT') {
+    try {
+      const { projectId, ...updateData } = await request.json() as { projectId: string } & Partial<AlphaProject>;
+
+      if (!projectId) {
+        return errorResponse('projectId is required', 400);
+      }
+
+      let projectsData = await env.EVM_PANEL_KV.get(ALPHA_PROJECTS_GLOBAL_KEY, 'json') as { projects: AlphaProject[] } | null;
+      if (!projectsData?.projects) {
+        return errorResponse('Projects not found', 404);
+      }
+
+      const projectIndex = projectsData.projects.findIndex(p => p.id === projectId);
+      if (projectIndex === -1) {
+        return errorResponse('Project not found', 404);
+      }
+
+      // Update project
+      projectsData.projects[projectIndex] = {
+        ...projectsData.projects[projectIndex],
+        ...updateData,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await env.EVM_PANEL_KV.put(ALPHA_PROJECTS_GLOBAL_KEY, JSON.stringify(projectsData));
+
+      // Audit log
+      await logAuditAction(env, 'update_project', auth.userAddress, { projectId, changes: updateData });
+
+      return jsonResponse({ project: projectsData.projects[projectIndex] });
+    } catch (error) {
+      console.error('Error updating project:', error);
+      return errorResponse('Failed to update project', 500);
+    }
+  }
+
+  if (request.method === 'DELETE') {
+    try {
+      const url = new URL(request.url);
+      const projectId = url.searchParams.get('projectId');
+
+      if (!projectId) {
+        return errorResponse('projectId URL parameter is required', 400);
+      }
+
+      let projectsData = await env.EVM_PANEL_KV.get(ALPHA_PROJECTS_GLOBAL_KEY, 'json') as { projects: AlphaProject[] } | null;
+      if (!projectsData?.projects) {
+        return errorResponse('Projects not found', 404);
+      }
+
+      const projectIndex = projectsData.projects.findIndex(p => p.id === projectId);
+      if (projectIndex === -1) {
+        return errorResponse('Project not found', 404);
+      }
+
+      const deletedProject = projectsData.projects.splice(projectIndex, 1)[0];
+      await env.EVM_PANEL_KV.put(ALPHA_PROJECTS_GLOBAL_KEY, JSON.stringify(projectsData));
+
+      // Audit log
+      await logAuditAction(env, 'delete_project', auth.userAddress, { projectId, projectName: deletedProject.name });
+
+      return jsonResponse({ success: true });
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      return errorResponse('Failed to delete project', 500);
+    }
+  }
+
+  return errorResponse('Method not allowed', 405);
+}
+
 // --- Main Fetch Handler (Manual Router) ---
 
 export default {
@@ -800,6 +1155,11 @@ if (route === 'networks' && request.method === 'GET') return await handleGetNetw
 if (route === 'networks' && (request.method === 'POST' || request.method === 'DELETE')) return await handleManageNetworks(request, env);
 if (route === 'contract-type') return await handleContractType(request, env);
 if (route === 'health') return jsonResponse({ status: 'ok' });
+
+// Alphas Admin Routes
+if (route === 'alphas/admin/init') return await handleAlphasInitAdmin(request, env);
+if (route === 'alphas/admin/roles') return await handleAlphasAdminRoles(request, env);
+if (route === 'alphas/admin/projects') return await handleAlphasProjects(request, env);
 } else {
         return await env.ASSETS.fetch(request);
       }

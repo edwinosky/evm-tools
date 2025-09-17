@@ -280,6 +280,7 @@ const ActionPanel = () => {
         <ActionButton href="/create-token">{t('createTokenButton', 'actions')}</ActionButton>
         <ActionButton href="/create-nft">{t('createNftButton', 'actions')}</ActionButton>
         <ActionButton href="/airdrop">{t('airdropToolsButton', 'actions')}</ActionButton>
+        <ActionButton href="/alphas">Panel Alphas</ActionButton>
 
         <div className="pt-4 mt-4 border-t border-border">
           {/* Render content only after mount to prevent hydration mismatch */}

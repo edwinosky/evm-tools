@@ -1,0 +1,298 @@
+## Antecedentes del Proyecto
+
+__Proyecto Actual__: EVM Wallet Panel - Dapp modular para herramientas EVM con Next.js, React, TypeScript, Tailwind, Cloudflare Workers/KV,wagmi, RainbowKit.
+
+__Nuevo Módulo__: Panel "Alphas" - Sistema inteligente para seguimiento de proyectos nuevos con potencial airdrop, incluyendo pestañas múltiples, notas de seguimiento, enlaces sociales, notificaciones, collaboration, etc.
+
+__Arquitectura__: Integrar como ruta /alphas en la dapp existente, reutilizando infraestructura (auth, layout, KV), enfocándonos en tecnologías gratuitas/código abierto.
+
+__Tiempo Estimado__: 15 semanas desarrollo (equipo 1-2 devs).
+
+__Costo Estimado__: $3k-7k (APIs gratuitas, hosting Cloudflare, desarrollo).
+
+## Plan de Trabajo Completo
+
+### Tecnología Stack del Nuevo Módulo
+
+- __Frontend__: React/TypeScript (existente en la dapp)
+- __Backend__: Cloudflare Workers (existente) + Puppeteer para scraping
+- __Storage__: Cloudflare KV inicialmente (escalable a D1 si necesario)
+- __APIs__: Telegram Bots, Discord Webhooks, CoinGecko free, Google Calendar
+- __Libraries__: Chart.js, Quill.js rich editor, jsPDF export
+- __Auth__: Extender existente con wallet addresses + nuevos roles admin
+
+### Detalles Técnicos y Contexto
+
+#### Esquema Database Cloudflare KV
+
+```javascript
+# Global Admin Data
+alpha_admin_roles: { users: [{address: "0x...", role: "super_admin", permissions: [...]}]}
+alpha_projects_global: { projects: [{id, name, category, website, socialLinks, ...}]}
+
+# Per-User Data  
+${userAddress}_alpha_tracked: { projects: ["project_id1", "project_id2"]}
+${userAddress}_alpha_notes: { [project_id]: [{date, content, tags, shared, ...}]}
+${userAddress}_alpha_collabs: { groups: [{id, name, type: "public/private", members: [...]}]}
+${userAddress}_alpha_preferences: { notifications: {email, telegram, discord}}
+${userAddress}_alpha_alerts: { [alertType]: {enabled, settings}}
+
+# Social Data Cache (TTL 1h)
+alpha_social_cache_${projectId}: { telegram: {...}, discord: {...}, rss: [...]}
+alpha_price_cache_${symbol}: { price, marketcap, change24h } (TTL 5min)
+```
+
+#### APIS Externas y Configuración
+
+- __Telegram Bot API__: @BotFather para crear bot, obtener token
+- __Discord Webhooks__: Configurar webhooks por proyecto/servidor
+- __Google Calendar__: OAuth app, scopes calendar.readonly/calendar.events
+- __CoinGecko/MarketCap__: API keys gratuitas, rate limits 10-50 req/min
+- __IPFS/Pinata__: Para archivos pesados si crece (free tier)
+
+#### Roles y Permisos Admin
+
+```javascript
+1. Super Admin: Full CRUD proyectos, user management, system config
+2. Editor: CRUD proyectos (con aprobación workflow)
+3. Viewer/Moderator: Read-only, manejar reports/flags
+4. User: Track proyectos, agregar notas, crear collaboration groups
+```
+
+### Roadmap por Fases con Pasos Detallados
+
+#### FASE 1: INFRAESTRUCTURA + PANEL ADMIN (3 SEMANAS)
+
+__Día 1-5: Setup y Routing__
+
+1. Crear directorio `src/app/alphas/`
+2. Crear `page.tsx` con layout básico
+3. Añadir enlace en `ActionPanel.tsx`: `<ActionButton href="/alphas">Alphas Panel</ActionButton>`
+4. Configurar context nuevo `AlphaContext.tsx` para state management pestañas
+5. Setup navegación breadcrumbs para /alphas
+
+__Día 6-10: Roles Admin en KV__
+
+1. Extender Cloudflare worker con endpoints admin:
+
+   - `/api/alphas/admin/roles` (GET/POST)
+   - `/api/alphas/admin/projects` (GET/PUT/DELETE)
+   - `/api/alphas/admin/users`
+
+2. Implementar middleware de auth en worker para verificar permisos
+
+3. Crear función validar permisos por endpoint
+
+4. Update `workers/src/index.ts` con nuevos handlers
+
+__Día 11-15: UI Admin Básica__
+
+1. Crear componentes admin en `src/app/components/alphas/`
+2. Layout admin con sidebar navegación (Projects, Users, Analytics)
+3. Formularios CRUD proyectos con validación
+4. Tabla users con filters/search
+
+__Día 16-20: Workflows Aprobación__
+
+1. Implementar status projects: draft, pending, approved, rejected
+2. Email notifications workflow (integración futura con Mailgun)
+3. Audit log acciones admin en KV
+4. Tests unitarios admin functionality
+
+#### FASE 2: LISTA + PESTAÑAS (2 SEMANAS)
+
+__Semana 4: Lista Proyectos__
+
+1. Component ProjectsGrid con filtros por category/potencial
+2. Implementar categorías sistemáticas (DeFi, NFT, GameFi, Tools, Gaming)
+3. Search functionality con highlight
+4. Infinite scroll para performance
+5. Tags/chips para características proyecto
+
+__Semana 5: Sistema Pestañas__
+
+1. Stateful tabs con React Context + localStorage
+2. Component TabBar con close buttons, drag-reorder
+3. Keyboard shortcuts (Ctrl+T nueva tab, Ctrl+W cerrar)
+4. Save/load tabs por sesión
+5. Responsive design mobile/desktop
+
+#### FASE 3: PANEL INDIVIDUAL + NOTAS (2 SEMANAS)
+
+__Semana 6: Vista Detalle__
+
+1. Layout maestro-detalle con sidebar info
+2. Sección descripción (WYSIWYG con Quill.js)
+3. Enlaces sociales con validación
+4. Botón Follow/Unfollow con animación
+
+__Semana 7: Sistema Notas__
+
+1. Rich editor integrado (Quill.js gratuito)
+2. Tagging system: #followup, #activity, #research
+3. Timestamping automático
+4. Public/private notes toggle
+5. Attachments support básico
+
+#### FASE 4: SCRAPING + SOCIALES (2 SEMANAS)
+
+__Semana 8: Puppeteer Setup__
+
+1. Instalar Puppeteer en workers environment
+2. Crear función scrapeWebsite(url) para metadata general
+3. Cache responses 1h en KV para performance
+4. Error handling rate limits / timeouts
+
+__Semana 9: Integración Redes__
+
+1. Telegram Bot setup:
+
+   - /newbot @BotFather obtener token
+   - Webhook URL en Cloudflare function
+   - Commands: /alert [project] [message]
+
+2. Discord webhooks setup por proyecto
+
+3. RSS parser para blogs de proyectos
+
+4. Auto-detection cambios enlaces
+
+#### FASE 5: NOTIFICACIONES + COMPARACIÓN (2 SEMANAS)
+
+__Semana 10: Notificaciones Base__
+
+1. In-app notifications con React Toast
+2. User preferences en KV user settings
+3. Trigger manual proyecto updates
+4. Scheduled notifications (Cloudflare Cron)
+
+__Semana 11: Análisis Comparativo__
+
+1. View split-screen con resizable panels
+2. Diff visual usando React diff views
+3. Charts básicos con Chart.js
+4. Export comparison PDF con jsPDF
+
+#### FASE 6: EXPORT/IMPORT + COLLABORATION (2 SEMANAS)
+
+__Semana 12: Export Basics__
+
+1. Export JSON/CSV user data
+2. ZIP bundle notes + attachments
+3. Scheduled backups a Cloudflare R2
+4. Versioning backups con timestamps
+
+__Semana 13: Collaboration__
+
+1. Group creation (public/private)
+2. Invite system email
+3. Share projects específico con permissions
+4. Comments/discussions por proyecto
+
+#### FASE 7: CATEGORIZACIÓN + CALENDAR (2 SEMANAS)
+
+__Semana 14: Categorización__
+
+1. Keywords mapping básicos:
+
+   - DEX/AM plead M: DeFi
+   - Token/NFT: Gaming
+   - Bridge: Infrastructure
+
+2. Manual override admin
+
+3. Auto-suggestions desde contenido scraped
+
+4. Confidence scores por category
+
+__Semana 15: Calendar + Market__
+
+1. Google Calendar OAuth + integration
+2. Recurring reminders notas pendientes
+3. CoinGecko API precio alerts
+4. Dashboard analytics con Chart.js
+
+### Requerimientos Pre-Implementación
+
+#### Cuentas y Credenciales
+
+1. __Cloudflare__:
+
+   - Workers/KV/D1 activados
+   - Domain/subdomain para API
+   - R2 bucket para backups
+
+2. __Telegram__:
+
+   - Cuenta @username disponible
+   - Bot creado vía @BotFather
+   - Token API generado
+
+3. __Discord__:
+
+   - Server para proyecto disponible
+   - Permisos crear webhooks
+   - Bot account optional
+
+4. __Google Developer Console__:
+
+   - Project creado
+   - Calendar API enabled
+   - OAuth credentials generated
+
+5. __APIs Marketplace__:
+
+   - CoinGecko API key (free)
+   - Email service setup (Mailgun free)
+
+#### Ambiente Desarrollo
+
+```javascript
+# Tech stack adicional
+- @google-analytics/js (optional analytics)
+- puppeteer (for scraping)
+- quilljs (rich editor)  
+- chart.js + react-chartjs-2 (graphs)
+- jspdf (PDF export)
+- react-div-100vh (mobile optimization)
+
+# Dependencies nuevas
+npm install puppeteer chart.js react-chartjs-2 quilljspdf react-div-100vh
+```
+
+#### Testing Strategy
+
+- Unit tests: Jest + Testing Library para componentes
+- E2E: Playwright para pestañas complejas
+- Integration: Workers testing con vr:test runner
+- Performance: Lighthouse CI, Web Vitals monitoring
+
+#### Deployment Checklist
+
+- [ ] Environment variables configuradas produção
+- [ ] KV bindings actualizados en Cloudflare
+- [ ] D1 database migrations si usado
+- [ ] Reverse proxy configured si microservicios
+- [ ] SSL/TLS certificates validos
+- [ ] Domain pointing correctamente
+- [ ] Zero-downtime deployment strategy
+- [ ] Rollback strategy defined
+- [ ] Monitoring dashboards setup
+
+#### Métricas Éxito
+
+- User engagement: Time spent in /alphas
+- Database growth: Proyectos tracked per user
+- API usage: Clicks por notificación/alert
+- Admin load: New projects added weekly
+
+### Risk Management
+
+#### Riesgos Técnicos
+
+__Alta Frecuencia Web Scraping__: Rate limits → Solution: Request throttling, caching agresivo __API Rate Limits Social__: Límite hits → Solution: Usuario debe proporcionar API keys propias __Storage Growth__: KV unlimited pero costs → Solution: Archive viejo data a R2 __Concurrent Users__: Pestañas múltiples state conflicts → Solution: Optimistic updates + conflict resolution
+
+#### Riesgos Operativos
+
+__Dependencias Externas__: APIs down → Solution: Failures graceful (cache local, etc.) __Legal Compliance__: Web scraping → Solution: Respect robots.txt, no content theft __Scalability__: Usuario growth → Solution: D1 migration preparado __Security__: User data sensitive → Solution: Encryption at rest, audit logs
+
