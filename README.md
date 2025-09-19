@@ -1,17 +1,55 @@
-# EVM Wallet Panel
+# EVM Wallet Panel 🚀
 
-A comprehensive wallet management panel for EVM-compatible blockchains with support for both wallet connections (MetaMask, RainbowKit) and private key connections. This application allows users to manage tokens, view balances, create contracts and NFTs, and track transaction history.
+A comprehensive **Web3 wallet management platform** for EVM-compatible blockchains with advanced **alpha project tracking** capabilities. Connect via MetaMask/RainbowKit or private keys to manage tokens, create contracts, NFTs, and discover emerging blockchain projects with our innovative **Panel Alpha** system.
 
-## Features
+## 🎯 Key Features
 
-- **Dual Connection Modes**: Connect via MetaMask/RainbowKit or private key
-- **Multi-chain Support**: Works with Ethereum, BSC, Polygon, Arbitrum, Avalanche, Fantom, Optimism, and Base
-- **Token Management**: Add and track ERC20 token balances
-- **Contract Creation**: Deploy custom smart contracts
-- **NFT Creation**: Mint new NFTs
-- **Transaction History**: View and track all transactions
-- **Cloudflare Integration**: Uses Cloudflare Workers and KV for global data storage
-- **Responsive Design**: Works on desktop and mobile devices
+### 🌐 Core Wallet Features
+- **Dual Connection Modes**: MetaMask/RainbowKit integration or private key authentication
+- **Multi-chain Support**: Ethereum, BSC, Polygon, Arbitrum, Avalanche, Fantom, Optimism, Base
+- **Token Management**: Add and track ERC20 token balances across chains
+- **Contract Creation**: Deploy custom smart contracts with our compilation tools
+- **NFT Creation**: Mint new NFTs with IPFS integration and custom metadata
+- **Transaction History**: Comprehensive transaction tracking with explorer links
+- **Cloudflare Backend**: Global data storage with Cloudflare Workers and KV
+
+### 🆕 New: Panel Alpha - Alpha Project Tracking (v1.3.1)
+
+**Revolutionary system for discovering and tracking blockchain alpha projects with advanced collaboration features.**
+
+#### 📊 Project Discovery & Management
+- **🗂️ Stateful Tabs System**: Multi-tab interface allowing simultaneous project tracking
+- **🔍 Advanced Grid Filtering**: Search, categorize, and discover projects by blockchain category
+- **🏷️ Intelligent Tagging**: Auto-suggested tags for project organization (#followup, #research, etc.)
+- **📝 Personal Notes**: Individual project notes with privacy controls per user
+- **📱 Social Timeline**: Discord + Twitter activity integration (mock data ready for APIs)
+
+#### 👑 Administrative Panel (`/alphas/admin`)
+- **🛡️ Role-Based Access**: Super Admin, Editor, Moderator, Viewer permissions
+- **📋 CRUD Projects**: Complete project lifecycle management with approval workflows
+- **👥 User Management**: Administrative user role assignment and oversight
+- **📈 Analytics Dashboard**: Project metrics and system analytics
+- **📝 Audit Logging**: Complete action tracking for compliance and security
+
+#### 🎯 Collaboration & Workflows
+- **✅ Approval Workflows**: Draft → Pending → Approved project lifecycles
+- **🏆 Reputation System**: Community-driven project scoring and feedback
+- **📂 Personal Tracking**: Individual watchlists and private project notes
+- **🎨 Rich Editor**: Enhanced note-taking with tagging and formatting
+- **🔗 Social Integration**: Direct links to Twitter, Discord, GitHub, Telegram
+
+#### 🤖 Smart Features (Roadmap Prepared)
+- **🤖 AI Matching**: Intelligent project discovery based on user interests
+- **📊 Performance Analytics**: Project growth and community engagement metrics
+- **🎯 Opportunity Scoring**: Airdrop and opportunity detection algorithms
+- **🔔 Smart Notifications**: Personalized alerts for tracked projects
+
+### 📱 Enhanced User Experience
+- **Responsive Design**: Mobile-first approach with adaptive layouts
+- **🎨 Modern UI**: Tailwind CSS with dark/light mode preparation
+- **⌨️ Keyboard Navigation**: Full keyboard accessibility and shortcuts
+- **🚀 Performance**: Optimized rendering and API calls
+- **🔧 Security**: Wallet-authenticated access with granular permissions
 
 ## Architecture
 
@@ -38,11 +76,19 @@ A comprehensive wallet management panel for EVM-compatible blockchains with supp
 The application uses Cloudflare Workers and KV for global, low-latency data storage. Each user's data is stored with a key format of `{walletAddress}:{key}` to ensure data isolation.
 
 ### Worker Endpoints
+
+**Core Wallet Endpoints:**
 - `GET /storage` - Get all user data
 - `POST /storage` - Set a user data item
 - `GET /storage/{key}` - Get a specific user data item
 - `DELETE /storage/{key}` - Delete a specific user data item
 - `GET /health` - Health check
+
+**🚀 New Alpha Panel Endpoints (v1.3.1):**
+- `GET/POST/DELETE /api/alphas/admin/projects` - Project CRUD with permissions
+- `GET/POST /api/alphas/admin/roles` - User role management
+- `GET /api/alphas/admin/users` - User management and permissions
+- `GET /api/alphas/admin/analytics` - System analytics and metrics
 
 ## Setup
 
@@ -119,16 +165,54 @@ NEXT_PUBLIC_INFURA_API_KEY=your_infura_api_key
 ```
 evm-wallet-panel/
 ├── src/
-│   ├── app/              # Next.js app router pages
-│   ├── components/       # React components
-│   ├── context/          # React context providers
-│   ├── lib/              # Utility functions and API clients
-│   └── config/           # Configuration files
-├── workers/              # Cloudflare Worker code
-├── server/               # Backend server code
-├── public/               # Static assets
-└── styles/               # Global styles
+│   ├── app/                          # Next.js app router pages
+│   │   ├── alphas/                   # 🚀 ALPHA PANEL Routes
+│   │   │   ├── admin/               # Admin dashboard
+│   │   │   │   ├── page.tsx          # Admin panel main page
+│   │   │   │   └── page.module.css   # Admin styles
+│   │   │   └── page.tsx             # Public alphas page
+│   │   ├── components/               # All UI components
+│   │   │   └── alphas/              # 🚀 ALPHA PANEL Components
+│   │   │       ├── ProjectDetail.tsx    # Project detail view
+│   │   │       ├── ProjectsGrid.tsx     # Projects grid with filtering
+│   │   │       ├── ProjectsPanel.tsx    # Admin projects management
+│   │   │       ├── NotesManager.tsx     # Personal notes system
+│   │   │       ├── SocialTimeline.tsx   # Social media timeline
+│   │   │       ├── TabBar.tsx          # Stateful tabs system
+│   │   │       └── AdminSidebar.tsx    # Admin navigation
+│   │   ├── context/                 # React context providers
+│   │   │   ├── TabContext.tsx       # 🚀 Tabs state management
+│   │   │   └── AlphaContext.tsx     # 🚀 Alpha panel context
+│   │   ├── lib/                     # Utility functions and API clients
+│   │   │   └── alphas-api.ts        # 🚀 Alpha panel API client
+│   │   └── config/                  # Configuration files
+├── workers/                          # Cloudflare Worker code
+│   └── src/
+│       └── index.ts                  # 🚀 Extended with alpha endpoints
+├── server/                           # Backend server code
+├── roadmap.txt                       # 🚀 Detailed project roadmap
+├── CHANGELOG.md                      # 🚀 Version history
+├── README.md                         # This file
+├── public/                           # Static assets
+└── styles/                           # Global styles
 ```
+
+### Key Components (Updated with Alpha Panel)
+
+#### Core Wallet Components
+- **AppContext**: Manages global application state including connected wallet data
+- **BalancePanel**: Native and ERC20 token balance display
+- **TransactionPanel**: Transaction creation and contract interaction
+- **HistoryPanel**: Transaction history with explorer links
+- **GeneratedAccountsPanel**: Private key account management
+
+#### 🚀 New Alpha Panel Components (v1.3.1)
+- **TabContext**: Stateful tabs management with localStorage persistence
+- **ProjectsGrid**: Advanced project discovery with filtering and infinite scroll
+- **ProjectDetail**: Comprehensive project view with notes and social timeline
+- **NotesManager**: Personal note-taking system with tagging and privacy
+- **SocialTimeline**: Discord/Twitter activity feeds (API-ready)
+- **AdminSidebar**: Administrative navigation with role-based access
 
 ## Key Components
 
@@ -176,14 +260,61 @@ Manages accounts generated from private keys.
 2. Check that the RPC endpoint is functioning correctly
 3. Ensure contract addresses are correct for interactions
 
-## Contributing
+## 📋 Roadmap & Progress
+
+### Current Version: v1.3.1
+
+**Completed Features (7/15 phases - 47% progress):**
+- ✅ **Phase 1**: Infrastructure + Admin Panel (100% complete)
+- ✅ **Phase 2**: Projects List + Tabs System (100% complete)
+- ✅ **Phase 3**: Project Detail + Notes (100% complete)
+- 🚧 **Phase 4**: Web Scraping + Social APIs (0% - Ready for implementation)
+
+**Documentation:**
+- 📖 **[Reading ROADMAP](roadmap.txt)**: Detailed development plan and specifications
+- 📝 **[Change History](CHANGELOG.md)**: Version-specific changes and improvements
+- 🐛 **Bug Reports**: Comprehensive incident resolution log in roadmap.txt
+
+### Upcoming Features
+
+#### Q4 2025 (Phases 4-7)
+- 🤖 **AI-Powered Project Discovery**: Smart filtering and recommendation algorithms
+- 📊 **Advanced Analytics**: Project performance metrics and trend analysis
+- 🎯 **Opportunity Scoring**: Airdrop detection and opportunity alerts
+- 🔗 **Full Social Integration**: Live Discord/Twitter webhooks and automation
+
+## 🤝 Contributing
+
+### Repository
+🐙 **[GitHub: edwinosky/evm-tools](https://github.com/edwinosky/evm-tools)**
+
+We welcome contributions! Please follow these steps:
 
 1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a pull request
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
 
-## License
+### Development Guidelines
+- Follow TypeScript strict mode requirements
+- Maintain comprehensive test coverage
+- Update CHANGELOG.md for all changes
+- Ensure mobile-first responsive design
+- Follow established naming conventions
+
+### Issue Tracking
+- 🐛 **Bug Reports**: Use GitHub Issues with detailed reproduction steps
+- 💡 **Feature Requests**: Label with `enhancement` tag
+- 📚 **Documentation**: Update README.md and roadmap.txt for new features
+
+## 📜 License
 
 MIT License - see LICENSE file for details.
+
+---
+
+<p align="center">
+  <strong>Built with ❤️ for the Web3 Community</strong><br>
+  🇪🇸 Proudly built in Spanish-speaking community
+</p>

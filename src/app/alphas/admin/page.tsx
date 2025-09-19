@@ -4,11 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAppContext } from '@/context/AppContext';
-import styles from '../../components/alphas/SimpleNavbar.module.css';
 import AdminNavbar from '../../components/alphas/AdminSidebar';
 import ProjectsPanel from '../../components/alphas/ProjectsPanel';
 import UsersPanel from '../../components/alphas/UsersPanel';
 import AnalyticsPanel from '../../components/alphas/AnalyticsPanel';
+import styles from './page.module.css';
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<'projects' | 'users' | 'analytics'>('projects');
@@ -67,17 +67,17 @@ export default function AdminPage() {
   };
 
   const renderRestrictedNavbar = () => (
-    <nav className={styles.simpleNavbar}>
-      <div className={styles.navbarLogo}>
+    <nav className={styles.restrictedNavbar}>
+      <div className={styles.logoSection}>
         <Link href="/" className={styles.logoLink}>
           <span className={styles.logoText}>Alphas Admin</span>
         </Link>
       </div>
 
-      <div className={styles.navAction}>
+      <div className={styles.navSpacer}>
         <Link
           href="/alphas"
-          className={styles.actionBtn}
+          className={styles.backLink}
         >
           ← Volver al Panel Alphas
         </Link>
@@ -89,7 +89,7 @@ export default function AdminPage() {
     <main className="relative z-10 p-4 md:p-6">
       <div className="bg-white/95 backdrop-blur-lg rounded-lg shadow-xl border border-white/20 p-8 text-center">
         <div className="max-w-md mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <h2 className="h2-alphas-admin">
             Acceso Restringido
           </h2>
 
@@ -133,43 +133,38 @@ export default function AdminPage() {
   );
 
   return (
-    <>
-      {/* Crystal Background Blur */}
-      <div className={styles.crystalBackground} />
-
-      <div className="min-h-screen relative">
-        {/* Loading State */}
-        {loadingAuth ? (
-          <>
-            {renderRestrictedNavbar()}
-            <main className="relative z-10 p-4 md:p-6">
-              <div className="bg-white/95 backdrop-blur-lg rounded-lg shadow-xl border border-white/20 p-8 text-center">
-                <div className="max-w-md mx-auto">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Verificando permisos...</p>
-                </div>
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Loading State */}
+      {loadingAuth ? (
+        <div className="flex-grow flex flex-col">
+          {renderRestrictedNavbar()}
+          <main className="flex-grow p-4 md:p-6">
+            <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
+              <div className="max-w-md mx-auto">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Verificando permisos...</p>
               </div>
-            </main>
-          </>
-        ) : !isAdmin ? (
-          <>
-            {renderRestrictedNavbar()}
-            {renderRestrictedContent()}
-          </>
-        ) : (
-          <>
-            {/* Full Admin Navbar */}
-            <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} />
+            </div>
+          </main>
+        </div>
+      ) : !isAdmin ? (
+        <div className="flex-grow flex flex-col">
+          {renderRestrictedNavbar()}
+          {renderRestrictedContent()}
+        </div>
+      ) : (
+        <div className="flex-grow flex flex-col">
+          {/* Full Admin Navbar */}
+          <AdminNavbar activeTab={activeTab} onTabChange={setActiveTab} />
 
-            {/* Full Admin Content */}
-            <main className="relative z-10 p-4 md:p-6">
-              <div className="bg-white/95 backdrop-blur-lg rounded-lg shadow-xl border border-white/20 p-6">
-                {renderContent()}
-              </div>
-            </main>
-          </>
-        )}
-      </div>
-    </>
+          {/* Full Admin Content */}
+          <main className="flex-grow p-4 md:p-6">
+            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
+              {renderContent()}
+            </div>
+          </main>
+        </div>
+      )}
+    </div>
   );
 }

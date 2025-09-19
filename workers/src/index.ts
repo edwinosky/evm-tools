@@ -995,17 +995,84 @@ async function handleAlphasAdminRoles(request: Request, env: Env): Promise<Respo
 }
 
 async function handleAlphasProjects(request: Request, env: Env): Promise<Response> {
+  // Check if this is an admin request by looking at permissions or headers
+  const isAdminRequest = request.headers.get('X-Wallet-Address') !== null;
+  let hasAdminPermission = false;
+
+  if (isAdminRequest) {
+    const auth = await checkAuthAndPermission(request, env, 'projects:read');
+    hasAdminPermission = auth !== null;
+  }
+
   if (request.method === 'GET') {
-    // Public read access for approved projects
     try {
       const projectsData = await env.EVM_PANEL_KV.get(ALPHA_PROJECTS_GLOBAL_KEY, 'json') as { projects: AlphaProject[] } | null;
       if (!projectsData?.projects) {
         return jsonResponse({ projects: [] });
       }
 
-      // Filter to only approved projects for public access
-      const approvedProjects = projectsData.projects.filter(p => p.status === 'approved');
-      return jsonResponse({ projects: approvedProjects });
+      let projects = projectsData.projects;
+
+      // If NOT admin request, only show approved projects
+      if (!hasAdminPermission) {
+        projects = projects.filter(p => p.status === 'approved');
+      }
+
+      // Parse query parameters
+      const url = new URL(request.url);
+      const category = url.searchParams.get('category');
+      const search = url.searchParams.get('search');
+      const sort = url.searchParams.get('sort');
+      const page = parseInt(url.searchParams.get('page') || '1');
+      const limit = parseInt(url.searchParams.get('limit') || '12');
+
+      // Apply category filter
+      if (category && category !== 'all') {
+        projects = projects.filter(p => p.category === category);
+      }
+
+      // Apply search filter
+      if (search) {
+        const searchLower = search.toLowerCase();
+        projects = projects.filter(p =>
+          p.name.toLowerCase().includes(searchLower) ||
+          (p.description && p.description.toLowerCase().includes(searchLower)) ||
+          p.website.toLowerCase().includes(searchLower)
+        );
+      }
+
+      // Apply sorting
+      if (sort) {
+        projects.sort((a, b) => {
+          switch (sort) {
+            case 'newest':
+              return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            case 'oldest':
+              return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+            case 'name':
+              return a.name.localeCompare(b.name);
+            default:
+              return 0;
+          }
+        });
+      } else {
+        // Default: newest first
+        projects.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      }
+
+      // Apply pagination
+      const totalProjects = projects.length;
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedProjects = projects.slice(startIndex, endIndex);
+
+      return jsonResponse({
+        projects: paginatedProjects,
+        total: totalProjects,
+        page,
+        limit,
+        hasMore: endIndex < totalProjects
+      });
     } catch (error) {
       console.error('Error getting projects:', error);
       return errorResponse('Failed to retrieve projects', 500);

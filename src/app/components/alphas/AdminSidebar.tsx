@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { FileText, Users, BarChart3, Menu, X, Home } from 'lucide-react';
 import Link from 'next/link';
-import styles from './SimpleNavbar.module.css';
+import styles from './AdminSidebar.module.css';
 
 interface AdminNavbarProps {
   activeTab: 'projects' | 'users' | 'analytics';
@@ -34,9 +34,9 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ activeTab, onTabChange }) => 
   return (
     <>
       {/* Desktop & Mobile Navbar */}
-      <nav className={styles.simpleNavbar}>
+      <nav className={styles.adminNavbar}>
         {/* Logo Section */}
-        <div className={styles.navbarLogo}>
+        <div className={styles.logoSection}>
           <Link href="/" className={styles.logoLink}>
             <Home size={24} />
             <span className={styles.logoText}>Alphas Admin</span>
@@ -44,7 +44,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ activeTab, onTabChange }) => 
         </div>
 
         {/* Desktop Navigation Tabs */}
-        <div className={styles.adminNavTabs}>
+        <div className={styles.desktopNavTabs}>
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.key;
@@ -53,7 +53,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ activeTab, onTabChange }) => 
               <button
                 key={item.key}
                 onClick={() => onTabChange(item.key)}
-                className={`${styles.adminNavTab} ${isActive ? styles.active : ''}`}
+                className={`${styles.navTab} ${isActive ? styles.active : ''}`}
               >
                 <Icon size={18} />
                 <span>{item.label}</span>
@@ -62,30 +62,40 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ activeTab, onTabChange }) => 
           })}
         </div>
 
-        <div className={styles.mobileNavTabs}>
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.key;
+        <div className={styles.rightSection}>
+          {/* Mobile Icon Tabs */}
+          <div className={styles.mobileIconTabs}>
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.key;
 
-            return (
-              <button
-                key={item.key}
-                onClick={() => onTabChange(item.key)}
-                className={`${styles.mobileTabBtn} ${isActive ? styles.active : ''}`}
-              >
-                <Icon size={20} />
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => onTabChange(item.key)}
+                  className={`${styles.mobileTabBtn} ${isActive ? styles.active : ''}`}
+                >
+                  <Icon size={20} />
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Mobile Hamburger */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className={styles.hamburgerBtn}
+          >
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
 
         {/* Mobile Menu Dropdown */}
         <div className={`${styles.mobileMenu} ${mobileMenuOpen ? styles.open : ''}`}>
           <div className={styles.mobileMenuContent}>
-            
             <Link
               href="/alphas"
-              className={`${styles.mobileNavItem} ${styles.backLink}`}
+              className={styles.backLink}
               onClick={() => setMobileMenuOpen(false)}
             >
               ← Volver a Panel Alphas
@@ -93,6 +103,32 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ activeTab, onTabChange }) => 
           </div>
         </div>
       </nav>
+
+      {/* Mobile Styles */}
+      <style jsx>{`
+        @media (max-width: 767px) {
+          nav div:nth-child(3) div:first-child {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            margin-left: auto !important;
+          }
+          nav div:nth-child(3) button:last-child {
+            display: flex !important;
+          }
+          nav > div:last-child {
+            display: block !important;
+          }
+          nav div:nth-child(2) {
+            display: none !important;
+          }
+        }
+        @media (min-width: 768px) {
+          nav div:nth-child(3) {
+            display: none !important;
+          }
+        }
+      `}</style>
     </>
   );
 };

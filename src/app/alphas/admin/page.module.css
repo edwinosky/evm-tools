@@ -1,0 +1,57 @@
+/* Admin Page Styles */
+
+/* Restricted Navbar */
+.restrictedNavbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  background: #3b82f6; /* Fondo azul como respaldo */
+  background: rgba(33, 118, 255, 0.1);
+  background-image: linear-gradient(135deg, rgba(33, 118, 255, 0.1), rgba(33, 118, 255, 0.05));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(33, 118, 255, 0.3);
+  box-shadow: 0 4px 24px rgba(33, 118, 255, 0.3);
+  color: white;
+  z-index: 1000;
+  position: relative;
+}
+
+.logoSection {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logoLink {
+  color: white;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logoText {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+}
+
+.navSpacer {
+  margin-left: auto;
+}
+
+.backLink {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: white;
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.backLink:hover {
+  background: rgba(255, 255, 255, 0.3);
+}

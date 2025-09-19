@@ -102,9 +102,9 @@ const AnalyticsPanel: React.FC = () => {
 
       {/* Main Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="statCard p-6">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center">
-            <FileText className="h-8 w-8 text-white" />
+            <FileText className="h-8 w-8 text-blue-600" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Proyectos</p>
               <p className="text-2xl font-semibold text-gray-900">{stats.totalProjects}</p>

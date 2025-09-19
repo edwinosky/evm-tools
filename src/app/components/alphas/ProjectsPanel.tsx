@@ -52,6 +52,26 @@ const ProjectsPanel: React.FC = () => {
     }
   };
 
+  // Delete project handler
+  const handleDeleteProject = async (projectId: string, projectName: string) => {
+    if (!confirm(`¿Está seguro que desea eliminar el proyecto "${projectName}"?\n\nEsta acción no se puede deshacer.`)) {
+      return;
+    }
+
+    try {
+      await alphasApi.projects.delete(projectId);
+      console.log('Project deleted successfully:', projectId);
+
+      // Remove from local state immediately for better UX
+      setProjects(prev => prev.filter(p => p.id !== projectId));
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      alert('Error eliminando proyecto');
+      // Reload list in case of error to ensure consistency
+      await loadProjects();
+    }
+  };
+
   useEffect(() => {
     if (address) {
       loadProjects();
@@ -229,8 +249,9 @@ const ProjectsPanel: React.FC = () => {
                           <Edit size={16} />
                         </button>
                         <button
-                          onClick={() => {/* TODO: Delete project */}}
+                          onClick={() => handleDeleteProject(project.id, project.name)}
                           className="text-red-600 hover:text-red-900"
+                          title="Eliminar proyecto"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -302,13 +323,21 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onClose, onSave }) =
         }
       };
 
+      let result;
+
       if (project) {
-        await alphasApi.projects.update(project.id, projectData);
+        // Update existing project
+        result = await alphasApi.projects.update(project.id, projectData);
+        console.log('Project updated successfully:', result);
       } else {
-        await alphasApi.projects.create(projectData);
+        // Create new project
+        result = await alphasApi.projects.create(projectData);
+        console.log('Project created successfully:', result);
       }
 
-      onSave();
+      // Force reload projects list to show changes immediately
+      await onSave();
+
       onClose();
     } catch (error) {
       console.error('Error saving project:', error);

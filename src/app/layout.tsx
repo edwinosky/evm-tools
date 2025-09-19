@@ -6,6 +6,7 @@ import { AppProvider } from '@/context/AppContext'
 import StyledComponentsRegistry from '@/lib/registry'
 import I18NProvider from '@/components/I18NProvider'
 import AppLayout from './components/AppLayout'
+import { TabProvider } from '@/context/TabContext'
 
 export const metadata: Metadata = {
   title: 'EVM Tools',
@@ -24,7 +25,9 @@ export default function RootLayout({
           <ContextProvider>
             <I18NProvider>
               <AppProvider>
-                <AppLayout>{children}</AppLayout>
+                <TabProvider>
+                  <AppLayout>{children}</AppLayout>
+                </TabProvider>
               </AppProvider>
             </I18NProvider>
           </ContextProvider>
