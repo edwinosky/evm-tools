@@ -12,5 +12,11 @@
     "@cloudflare/workers-types": "^4.20230914.0",
     "typescript": "^5.2.2",
     "wrangler": "^3.88.0"
+  },
+  "dependencies": {
+    "viem": "^2.21.8",
+    "precompiled-contracts": "file:../server",
+    "@cloudflare/puppeteer": "^0.0.7",
+    "cheerio": "^1.0.0-rc.12"
   }
 }

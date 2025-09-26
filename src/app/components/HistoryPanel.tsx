@@ -92,10 +92,9 @@ const HistoryPanel = () => {
       {/* Header with clear history button */}
       {transactionHistory.length > 0 && (
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold text-card-foreground">{t('transactionHistory')}</h3>
           <button
             onClick={handleClearHistory}
-            className="px-3 py-1 text-sm bg-red-500/10 hover:bg-red-500/20 text-red-600 border border-red-200 rounded-md transition-colors"
+            className="btn-destructive px-3 py-1 text-sm rounded-md transition-colors"
             title={t('clearAllHistory')}
           >
             🗑️ {t('clearAllHistory')}

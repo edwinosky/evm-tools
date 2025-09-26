@@ -285,6 +285,7 @@ const ProjectDetail: React.FC<{ projectId: string }> = ({ projectId }) => {
 
             {/* Right Column - Social Timeline */}
             <SocialTimeline
+              projectId={projectId}
               projectName={project.name}
               twitterHandle={project.socialLinks.twitter ? extractTwitterHandle(project.socialLinks.twitter) : undefined}
               discordInvite={project.socialLinks.discord || undefined}

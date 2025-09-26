@@ -1,5 +1,6 @@
 'use client';
 
+import GeneratedAccountsPanel from '@/app/components/GeneratedAccountsPanel';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 type Language = 'en' | 'es' | 'zh' | 'ko';
@@ -84,7 +85,7 @@ const translations = {
     },
     generatedAccounts: {
       // GeneratedAccountsPanel
-      panelTitle: 'Generated Accounts',
+      generatedAccountsPanelTitle: 'Generated Accounts',
       generatingAccount: 'Generating...',
       generateNewAccount: 'Generate New Account',
       noAccountsGenerated: 'No accounts generated yet.',
@@ -118,7 +119,6 @@ const translations = {
       developmentMessage: "We're actively working to add more features and tools to expand the platform's capabilities. Stay tuned for updates!"
     },
     actions: {
-      panelTitle: 'Actions',
       connectWalletMessage: 'Connect a wallet to begin',
       selectAssetMessage: 'Select an asset to see actions',
       selectedPrefix: 'Selected',
@@ -311,7 +311,6 @@ const translations = {
     },
     generatedAccounts: {
       // GeneratedAccountsPanel
-      panelTitle: 'Cuentas Generadas',
       generatingAccount: 'Generando...',
       generateNewAccount: 'Generar Nueva Cuenta',
       noAccountsGenerated: 'Aún no hay cuentas generadas.',
@@ -345,7 +344,6 @@ const translations = {
       developmentMessage: '¡Estamos trabajando activamente en agregar más funciones y herramientas para expandir las capacidades de la plataforma. Mantente atento a las actualizaciones!'
     },
     actions: {
-      panelTitle: 'Acciones',
       connectWalletMessage: 'Conecta una billetera para comenzar',
       selectAssetMessage: 'Selecciona un activo para ver acciones',
       selectedPrefix: 'Seleccionado',

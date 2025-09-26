@@ -3,6 +3,8 @@ import { createPublicClient, createWalletClient, http, parseEther } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { erc20Abi, erc721Abi, erc1155Abi } from 'viem';
 import precompiledContracts from './precompiled-contracts.json';
+import puppeteer from '@cloudflare/puppeteer';
+import * as cheerio from 'cheerio';
 
 // --- Network Configuration ---
 interface Network {
@@ -46,6 +48,8 @@ export interface Env {
   ETHERSCAN_API_KEY: string; // Single Etherscan API key for all compatible networks
   NETWORKS: string; // JSON string of Network[]
   ASSETS: { fetch: (req: Request) => Promise<Response> };
+  // Browser Worker for Puppeteer
+  BROWSER: any;
 }
 
 // --- Utility Functions ---
@@ -1196,6 +1200,336 @@ async function handleAlphasProjects(request: Request, env: Env): Promise<Respons
 
 // --- Main Fetch Handler (Manual Router) ---
 
+// --- Scraping Functions ---
+
+// Rate limiting constants
+const SCRAPING_RATE_LIMIT_KEY = 'scraping_rate_limit';
+const SCRAPING_RATE_LIMIT_TTL = 900000; // 15 minutes
+const MAX_SCRAPES_PER_PERIOD = 50; // 50 scrapes per 15 minutes
+
+// Cache constants
+const SCRAPING_CACHE_TTL = 3600000; // 1 hour in milliseconds
+
+interface ScrapedData {
+  title?: string;
+  description?: string;
+  image?: string;
+  socialLinks: {
+    twitter?: string;
+    telegram?: string;
+    discord?: string;
+    github?: string;
+  };
+  scrapedAt: string;
+  source: string;
+  error?: string;
+}
+
+// Simple rate limiting function
+async function checkRateLimit(env: Env, identifier: string): Promise<{ allowed: boolean; resetTime?: number }> {
+  const rateLimitKey = `${SCRAPING_RATE_LIMIT_KEY}:${identifier}`;
+  const now = Date.now();
+
+  try {
+    const rateLimitData = await env.EVM_PANEL_KV.get(rateLimitKey, 'json') as
+      { count: number; resetTime: number } | null;
+
+    if (!rateLimitData) {
+      // First request
+      await env.EVM_PANEL_KV.put(rateLimitKey, JSON.stringify({
+        count: 1,
+        resetTime: now + SCRAPING_RATE_LIMIT_TTL
+      }), { expirationTtl: SCRAPING_RATE_LIMIT_TTL });
+      return { allowed: true };
+    }
+
+    if (now >= rateLimitData.resetTime) {
+      // Reset period
+      await env.EVM_PANEL_KV.put(rateLimitKey, JSON.stringify({
+        count: 1,
+        resetTime: now + SCRAPING_RATE_LIMIT_TTL
+      }), { expirationTtl: SCRAPING_RATE_LIMIT_TTL });
+      return { allowed: true };
+    }
+
+    if (rateLimitData.count >= MAX_SCRAPES_PER_PERIOD) {
+      return { allowed: false, resetTime: rateLimitData.resetTime };
+    }
+
+    // Increment counter
+    await env.EVM_PANEL_KV.put(rateLimitKey, JSON.stringify({
+      count: rateLimitData.count + 1,
+      resetTime: rateLimitData.resetTime
+    }), { expirationTtl: Math.ceil((rateLimitData.resetTime - now) / 1000) });
+
+    return { allowed: true };
+  } catch (error) {
+    console.error('Rate limit error:', error);
+    return { allowed: false };
+  }
+}
+
+// Social media detection and extraction
+async function extractSocialLinks($: cheerio.CheerioAPI, page: any): Promise<Record<string, string>> {
+  const socialLinks: Record<string, string> = {};
+
+  // Extract from meta tags
+  const twitterMeta = $('meta[name="twitter:site"]').attr('content') ||
+                      $('meta[property="twitter:site"]').attr('content');
+  if (twitterMeta) {
+    socialLinks.twitter = twitterMeta.startsWith('@') ? `https://twitter.com/${twitterMeta.slice(1)}` :
+                         twitterMeta.startsWith('https://') ? twitterMeta : `https://twitter.com/${twitterMeta}`;
+  }
+
+  // Extract from meta description
+  const description = $('meta[name="description"]').attr('content') ||
+                     $('meta[property="og:description"]').attr('content');
+  if (description) {
+    // Look for social links in description
+    const twitterMatch = description.match(/(?:twitter\.com|twitter\.cx|x\.com)\/([a-zA-Z0-9_]+)/i);
+    if (twitterMatch && !socialLinks.twitter) {
+      socialLinks.twitter = `https://twitter.com/${twitterMatch[1]}`;
+    }
+  }
+
+  try {
+    // Extract links from page content
+    $('a[href]').each((_, element) => {
+      const href = $(element).attr('href');
+      if (!href) return;
+
+      // Normalize URL
+      let normalizedUrl = href;
+      if (href.startsWith('//')) normalizedUrl = 'https:' + href;
+      else if (href.startsWith('/')) return; // Skip relative links
+      else if (!href.startsWith('http')) return; // Skip non-HTTP links
+
+      try {
+        const url = new URL(normalizedUrl);
+        const hostname = url.hostname.toLowerCase();
+
+        // Detect social media platforms
+        if (hostname === 'twitter.com' || hostname === 'x.com' ||
+            hostname.endsWith('.twitter.com') || hostname.endsWith('.x.com')) {
+          if (!socialLinks.twitter && url.pathname.split('/').length >= 2) {
+            socialLinks.twitter = normalizedUrl;
+          }
+        } else if (hostname === 't.me' && !socialLinks.telegram) {
+          socialLinks.telegram = normalizedUrl;
+        } else if (hostname === 'discord.gg' || hostname === 'discordapp.com' ||
+                   hostname.endsWith('.discord.gg')) {
+          if (!socialLinks.discord) {
+            socialLinks.discord = normalizedUrl;
+          }
+        } else if (hostname === 'github.com' && !socialLinks.github &&
+                   url.pathname.split('/').length >= 2) {
+          socialLinks.github = normalizedUrl;
+        }
+      } catch (e) {
+        // Invalid URL, skip
+      }
+    });
+  } catch (error) {
+    console.warn('Error extracting links:', error);
+  }
+
+  return socialLinks;
+}
+
+// Caching functions
+async function getCachedData(env: Env, cacheKey: string): Promise<ScrapedData | null> {
+  try {
+    const cached = await env.EVM_PANEL_KV.get(`scrape_cache:${cacheKey}`, 'json') as ScrapedData | null;
+    if (cached && Date.now() - new Date(cached.scrapedAt).getTime() < SCRAPING_CACHE_TTL) {
+      return cached;
+    }
+    return null;
+  } catch (error) {
+    console.warn('Cache read error:', error);
+    return null;
+  }
+}
+
+async function setCachedData(env: Env, cacheKey: string, data: ScrapedData): Promise<void> {
+  try {
+    await env.EVM_PANEL_KV.put(`scrape_cache:${cacheKey}`, JSON.stringify(data), {
+      expirationTtl: Math.ceil(SCRAPING_CACHE_TTL / 1000)
+    });
+  } catch (error) {
+    console.warn('Cache write error:', error);
+  }
+}
+
+// Main scraping function
+async function scrapeWebsite(url: string, userAgent?: string, env?: Env): Promise<ScrapedData> {
+  if (!env?.BROWSER) {
+    throw new Error('Browser binding is not configured');
+  }
+  const browser = await puppeteer.launch(env.BROWSER);
+
+  try {
+    const page = await browser.newPage();
+
+    // Set user agent
+    await page.setUserAgent(userAgent || 'Mozilla/5.0 (compatible; Website Scraper Bot/1.0)');
+
+    // Set reasonable viewport
+    await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
+
+    console.log(`Scraping URL: ${url}`);
+
+    // Navigate with reasonable timeout
+    await page.goto(url, {
+      waitUntil: 'domcontentloaded',
+      timeout: 30000 // 30 seconds
+    });
+
+    // Wait a short moment for content to load
+    await page.waitForSelector('head', { timeout: 10000 });
+
+    // Extract HTML content
+    const html = await page.content();
+    const $ = cheerio.load(html);
+
+    // Extract basic metadata
+    const title = $('title').text().trim() ||
+                 $('meta[property="og:title"]').attr('content') ||
+                 $('h1').first().text().trim();
+
+    const description = $('meta[name="description"]').attr('content') ||
+                       $('meta[property="og:description"]').attr('content') ||
+                       $('meta[name="twitter:description"]').attr('content');
+
+    const image = $('meta[property="og:image"]').attr('content') ||
+                 $('meta[name="twitter:image"]').attr('content');
+
+    // Extract social links
+    const socialLinks = await extractSocialLinks($, page);
+
+    const scrapedData: ScrapedData = {
+      title,
+      description,
+      image,
+      socialLinks,
+      scrapedAt: new Date().toISOString(),
+      source: url
+    };
+
+    console.log(`Successfully scraped: ${JSON.stringify(scrapedData, null, 2)}`);
+
+    return scrapedData;
+
+  } catch (error) {
+    console.error('Scraping error:', error);
+
+    return {
+      socialLinks: {},
+      scrapedAt: new Date().toISOString(),
+      source: url,
+      error: error instanceof Error ? error.message : 'Unknown error during scraping'
+    };
+  } finally {
+    try {
+      if (browser) {
+        await browser.close();
+      }
+    } catch (closeError) {
+      console.warn('Error closing browser:', closeError);
+    }
+  }
+}
+
+// Main scraping API handler
+async function handleScrapeWebsite(request: Request, env: Env): Promise<Response> {
+  // Only accept POST requests
+  if (request.method !== 'POST') {
+    return errorResponse('Method not allowed. Use POST with JSON body containing {url: "https://..."}', 405);
+  }
+
+  let requestData;
+  try {
+    const text = await request.text();
+    if (!text.trim()) {
+      return errorResponse('Request body is required with URL to scrape', 400);
+    }
+    requestData = JSON.parse(text);
+  } catch (error) {
+    return errorResponse('Invalid JSON in request body', 400);
+  }
+
+  const { url, userAgent } = requestData;
+
+  if (!url) {
+    return errorResponse('URL is required in request body', 400);
+  }
+
+  // Basic URL validation
+  try {
+    new URL(url);
+  } catch (error) {
+    return errorResponse('Invalid URL format', 400);
+  }
+
+  // Simple identifier based on IP or user agent for rate limiting
+  const identifier = request.headers.get('CF-Connecting-IP') ||
+                    request.headers.get('X-Forwarded-For') ||
+                    'anonymous';
+
+  // Check rate limit
+  const rateLimitCheck = await checkRateLimit(env, identifier);
+  if (!rateLimitCheck.allowed) {
+    const resetMinutes = rateLimitCheck.resetTime ?
+                        Math.ceil((rateLimitCheck.resetTime - Date.now()) / 60000) : 15;
+    return new Response(JSON.stringify({ error: `Rate limit exceeded. Try again in ${resetMinutes} minutes` }), {
+      status: 429,
+      headers: {
+        'Content-Type': 'application/json',
+        'Retry-After': (resetMinutes * 60).toString(),
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Wallet-Address',
+      },
+    });
+  }
+
+  // Create cache key
+  const cacheKey = btoa(url).replace(/[^a-zA-Z0-9]/g, '').substring(0, 50);
+
+  try {
+    // Check cache first
+    console.log(`Checking cache for key: ${cacheKey}`);
+    const cachedData = await getCachedData(env, cacheKey);
+
+    if (cachedData) {
+      console.log('Returning cached data');
+      return jsonResponse({
+        ...cachedData,
+        cached: true,
+        cacheAge: Math.floor((Date.now() - new Date(cachedData.scrapedAt).getTime()) / 1000)
+      });
+    }
+
+    // Scrape the website
+    console.log(`Scraping website: ${url}`);
+    const scrapedData = await scrapeWebsite(url, userAgent, env);
+
+    if (scrapedData && !scrapedData.error) {
+      // Cache successful results
+      await setCachedData(env, cacheKey, scrapedData);
+      console.log('Data cached successfully');
+    }
+
+    return jsonResponse({
+      ...scrapedData,
+      cached: false
+    });
+
+  } catch (error) {
+    console.error('Scraping handler error:', error);
+    return errorResponse('Failed to scrape website', 500);
+  }
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -1216,18 +1550,21 @@ export default {
         if (route === 'balance') return await handleBalance(request, env);
         if (route === 'send-transaction') return await handleSendTransaction(request, env);
         if (route === 'sign-permit') return await handleSignPermit(request, env);
-if (route === 'deploy-contract') return await handleDeployContract(request, env);
-if (route === 'discover-balances') return await handleDiscoverBalancesV2(request, env); // Renamed for clarity
-if (route === 'networks' && request.method === 'GET') return await handleGetNetworks(request, env);
-if (route === 'networks' && (request.method === 'POST' || request.method === 'DELETE')) return await handleManageNetworks(request, env);
-if (route === 'contract-type') return await handleContractType(request, env);
-if (route === 'health') return jsonResponse({ status: 'ok' });
+        if (route === 'deploy-contract') return await handleDeployContract(request, env);
+        if (route === 'discover-balances') return await handleDiscoverBalancesV2(request, env); // Renamed for clarity
+        if (route === 'networks' && request.method === 'GET') return await handleGetNetworks(request, env);
+        if (route === 'networks' && (request.method === 'POST' || request.method === 'DELETE')) return await handleManageNetworks(request, env);
+        if (route === 'contract-type') return await handleContractType(request, env);
+        if (route === 'health') return jsonResponse({ status: 'ok' });
 
-// Alphas Admin Routes
-if (route === 'alphas/admin/init') return await handleAlphasInitAdmin(request, env);
-if (route === 'alphas/admin/roles') return await handleAlphasAdminRoles(request, env);
-if (route === 'alphas/admin/projects') return await handleAlphasProjects(request, env);
-} else {
+        // Alphas Admin Routes
+        if (route === 'alphas/admin/init') return await handleAlphasInitAdmin(request, env);
+        if (route === 'alphas/admin/roles') return await handleAlphasAdminRoles(request, env);
+        if (route === 'alphas/admin/projects') return await handleAlphasProjects(request, env);
+
+        // New Scraping Routes - Fase 4
+        if (route === 'alphas/scrape/social') return await handleScrapeWebsite(request, env);
+      } else {
         return await env.ASSETS.fetch(request);
       }
     } catch (e) {

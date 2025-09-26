@@ -30,7 +30,6 @@ const GeneratedAccountsPanel = () => {
 
   return (
     <div className="border rounded-lg p-4">
-      <h3 className="text-lg font-medium mb-4">{t('panelTitle', 'generatedAccounts')}</h3>
       <button
         onClick={handleGenerateAccount}
         disabled={isGenerating}

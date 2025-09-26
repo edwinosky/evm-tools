@@ -8,7 +8,6 @@ import AdminNavbar from '../../components/alphas/AdminSidebar';
 import ProjectsPanel from '../../components/alphas/ProjectsPanel';
 import UsersPanel from '../../components/alphas/UsersPanel';
 import AnalyticsPanel from '../../components/alphas/AnalyticsPanel';
-import styles from './page.module.css';
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<'projects' | 'users' | 'analytics'>('projects');
@@ -67,17 +66,17 @@ export default function AdminPage() {
   };
 
   const renderRestrictedNavbar = () => (
-    <nav className={styles.restrictedNavbar}>
-      <div className={styles.logoSection}>
-        <Link href="/" className={styles.logoLink}>
-          <span className={styles.logoText}>Alphas Admin</span>
+    <nav className="bg-card border-b border-border p-4 flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <Link href="/" className="text-foreground no-underline flex items-center gap-2">
+          <span className="font-bold text-lg">Alphas Admin</span>
         </Link>
       </div>
 
-      <div className={styles.navSpacer}>
+      <div className="ml-auto">
         <Link
           href="/alphas"
-          className={styles.backLink}
+          className="bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all duration-300 px-4 py-2 rounded-md text-sm"
         >
           ← Volver al Panel Alphas
         </Link>

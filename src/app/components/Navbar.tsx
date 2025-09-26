@@ -4,20 +4,18 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAppContext } from '@/context/AppContext';
-import { LogOut, Home } from 'lucide-react';
+import { LogOut, Home, Menu } from 'lucide-react';
 import { PrivateKeyConnectModal } from './PrivateKeyConnectModal';
 import NetworkSelector from './NetworkSelector';
-import LanguageSelector from '../../components/LanguageSelector';
 import { useLanguage } from '@/context/LanguageContext';
 import './Navbar.css';
 
 const Navbar = () => {
   const { isConnected, disconnect, address, connectionMode, currentNetwork } = useAppContext();
   const { t } = useLanguage();
-  console.log('Navbar props:', { isConnected, disconnect, address, connectionMode, currentNetwork });
-
   const [hasMounted, setHasMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // State for mobile menu
 
   useEffect(() => {
     setHasMounted(true);
@@ -31,36 +29,45 @@ const Navbar = () => {
   const truncateAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 
   return (
-    <nav className="navbar">
-      <div className="container">
-        <div className="nav-left">
+    <nav className="navbar relative">
+      <div className="container flex justify-between items-center p-4">
+        <div className="nav-left flex items-center space-x-4">
           <div className="nav-logo">
-            <Link href="/" className="nav-link">
+            <Link href="/" className="nav-link text-lg font-bold">
               EVM Tools
             </Link>
           </div>
-          <Link href="/" className="nav-link" title="Home">
-            <Home size={20} />
-          </Link>
-          <LanguageSelector />
-          <a
-            href="https://www.drainerless.xyz/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="nav-link"
-          >
-            Rescue Dapp
-          </a>
+          {/* Desktop navigation links */}
+          {!isMobile && (
+            <div className="flex space-x-4">
+              <a
+                href="https://www.drainerless.xyz/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="nav-link"
+              >
+                Rescue Dapp
+              </a>
+              <Link href="/alphas" className="nav-link">Alphas</Link>
+              <Link href="/airdrop" className="nav-link">Airdrop</Link>
+            </div>
+          )}
         </div>
-        <div className="nav-right">
+        <div className="nav-right flex items-center space-x-4 justify-end flex-grow">
+          {/* Hamburger menu button for mobile */}
+          {isMobile && (
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 rounded-md hover:bg-accent focus:outline-none">
+              <Menu size={24} />
+            </button>
+          )}
           {hasMounted && isConnected ? (
             <>
               <NetworkSelector />
-              <div className="nav-button">
+              <div className="nav-button bg-muted text-muted-foreground px-3 py-2 rounded-md">
                 {connectionMode === 'privateKey' && '🔑 '}
                 {address && truncateAddress(address)}
               </div>
-              <button onClick={disconnect} className="nav-link" title={t('disconnect', 'nav')}>
+              <button onClick={disconnect} className="nav-link p-2 rounded-md hover:bg-accent" title={t('disconnect', 'nav')}>
                 <LogOut size={20} />
               </button>
             </>
@@ -68,8 +75,8 @@ const Navbar = () => {
             <>
               <NetworkSelector />
               <PrivateKeyConnectModal>
-                <button className="nav-link">
-                  {isMobile ? "Connect PK" : "Connect Private Key"}
+                <button className="nav-link bg-primary text-primary-foreground px-3 py-2 rounded-md hover:bg-primary/90">
+                  {isMobile ? "Connect PK" : "Connect PK"}
                 </button>
               </PrivateKeyConnectModal>
               <div className="connect-button-container">
@@ -103,16 +110,15 @@ const Navbar = () => {
                         })}
                       >
                         {!connected && (
-                          <button onClick={openConnectModal} className="nav-link">
+                          <button onClick={openConnectModal} className="nav-link bg-primary text-primary-foreground px-3 py-2 rounded-md hover:bg-primary/90">
                             {isMobile ? "Connect" : "Connect Wallet"}
                           </button>
                         )}
                         {connected && (
-                          <div style={{ display: 'flex', gap: 12 }}>
+                          <div className="flex items-center space-x-2">
                             <button
                               onClick={openChainModal}
-                              style={{ display: 'flex', alignItems: 'center' }}
-                              className="nav-link"
+                              className="nav-link flex items-center space-x-1 bg-muted text-muted-foreground px-3 py-2 rounded-md hover:bg-accent"
                             >
                               {chain.hasIcon && (
                                 <div
@@ -136,7 +142,7 @@ const Navbar = () => {
                               )}
                               {chain.name}
                             </button>
-                            <button onClick={openAccountModal} className="nav-link">
+                            <button onClick={openAccountModal} className="nav-link bg-muted text-muted-foreground px-3 py-2 rounded-md hover:bg-accent">
                               {account.displayName}
                             </button>
                           </div>
@@ -150,6 +156,29 @@ const Navbar = () => {
           ) : null}
         </div>
       </div>
+
+      {/* Mobile menu (dropdown) */}
+      {isMobile && isMenuOpen && (
+        <div className="absolute top-full right-0 w-48 bg-card border border-border rounded-md shadow-lg z-50 py-2 transition-all duration-300 ease-in-out transform origin-top scale-y-100">
+        <div className="flex flex-col items-end space-y-2 px-4">
+            <Link href="/" className="nav-link text-base py-1" onClick={() => setIsMenuOpen(false)}>
+              <Home size={16} className="inline-block mr-2" /> Home
+            </Link>
+            <a
+              href="https://www.drainerless.xyz/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="nav-link text-base py-1"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Rescue Dapp
+            </a>
+            <Link href="/alphas" className="nav-link text-base py-1" onClick={() => setIsMenuOpen(false)}>Alphas</Link>
+            <Link href="/airdrop" className="nav-link text-base py-1" onClick={() => setIsMenuOpen(false)}>Airdrop</Link>
+            {/* Add other mobile-specific menu items here if needed */}
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

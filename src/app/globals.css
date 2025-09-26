@@ -2,205 +2,132 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CSS Variables for theming */
+/* Modern & Elegant Theme */
 :root {
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  --primary: 222.2 47.4% 11.2%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 222.2 84% 4.9%;
-  --radius: 0.5rem;
-}
-
-.dark {
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 40% 98%;
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 210 40% 98%;
-  --primary-foreground: 222.2 47.4% 11.2%;
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 262.1 83.3% 57.8%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
   --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 212.7 26.8% 83.9%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 262.1 83.3% 57.8%;
+  --radius: 0.5rem;
 }
 
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-family: sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
-/* Responsive design for mobile devices */
-@media (max-width: 768px) {
-  .mobile-hidden {
-    display: none;
-  }
-
-  .mobile-full-width {
-    width: 100%;
-  }
-
-  /* Panel styles for mobile */
-  .panel-mobile {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 50;
-    background-color: hsla(var(--background) / 0.95);
-    backdrop-filter: blur(4px);
-    transform: translateX(-100%);
-    transition: transform 0.3s ease-in-out;
-    overflow-y: auto;
-  }
-
-  .panel-mobile.open {
-    transform: translateX(0);
-  }
-
-  .panel-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 40;
-    background-color: rgba(0, 0, 0, 0.5);
-    opacity: 0;
-    transition: opacity 0.3s ease-in-out;
-    pointer-events: none;
-  }
-
-  .panel-overlay.open {
-    opacity: 1;
-    pointer-events: all;
-  }
+/* Custom button styles */
+.btn-primary {
+  @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300;
 }
 
-.p-6 {
-  padding: 1.5rem;
-  color: black;
-}
-h1, h2, h3 {
-  color: white
+.btn-secondary {
+  @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all duration-300;
 }
 
-/* Additional responsive utilities */
-@media (max-width: 768px) {
-  .p-6 {
-    padding: 1rem;
-
-  }
-
-  .text-2xl {
-    font-size: 1.5rem;
-  }
+/* Panel styles */
+.action-panel {
+  @apply bg-card border-l border-border p-6 space-y-6;
 }
 
-#rpcUrl {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  background-color: hsl(var(--input));
-  color: hsl(var(--foreground));
-}
-#privateKey {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  background-color: hsl(var(--input));
-  color: hsl(var(--foreground));
+.action-panel h3 {
+  @apply text-xl font-bold tracking-tight;
 }
 
-
-/* Hexagon Social Buttons */
-.hexagon-wrapper {
-  margin: auto;
-  text-align: initial;
-  width: 60px;
-  height: 60px;
-  cursor: pointer;
+.action-panel .history-section {
+  @apply border-t border-border pt-4;
 }
 
-.hexagon {
-  position: relative;
-  width: 46%;
-  height: 80%;
-  margin: auto;
-  color: white;
-  background: linear-gradient(-180deg, hsl(var(--primary)), hsl(var(--accent)));
-  display: flex;
-  align-content: center;
-  justify-content: center;
-  transition: 0.5s;
-  border-radius: 0;
+.action-panel .history-section h3 {
+  @apply mb-4;
 }
 
-.hexagon:before,
-.hexagon:after {
-  position: absolute;
-  content: "";
-  background: inherit;
-  height: 100%;
-  width: 100%;
-  border-radius: 0;
-  transition: 0.5s;
-  transform-origin: center;
+.action-panel .history-section .history-list {
+  @apply max-h-60 overflow-y-auto pr-2;
 }
 
-.hexagon:before {
-  transform: rotateZ(60deg);
+/* Modern scrollbar */
+.history-list::-webkit-scrollbar {
+  width: 6px;
 }
 
-.hexagon:after {
-  transform: rotateZ(-60deg);
+.history-list::-webkit-scrollbar-track {
+  background: hsl(var(--secondary));
 }
 
-.hexagon:hover {
-  border-radius: 50%;
-  transition: 0.5s;
+.history-list::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary));
+  border-radius: 3px;
 }
 
-.hexagon:hover:before {
-  border-radius: 50%;
-  transition: 0.5s;
+.history-list::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.8);
 }
 
-.hexagon:hover:after {
-  border-radius: 50%;
-  transition: 0.5s;
+.action-panel .panel-section {
+  @apply border-t border-border pt-6;
 }
 
-.hexagon svg {
-  z-index: 1;
-  margin: auto;
-  font-size: 24px;
-  fill: hsl(var(--primary-foreground));
+.action-panel .panel-section:first-child {
+  @apply border-t-0 pt-0;
+}
+
+.action-panel .panel-section h3 {
+  @apply mb-4;
+}
+
+.action-panel .history-section .history-list {
+  @apply max-h-80 overflow-y-auto pr-2;
+}
+
+/* Panel styles for mobile */
+.panel-mobile {
+  position: fixed;
+  top: 0;
+  left: 0; /* Ensure it starts from the left */
+  bottom: 0;
+  z-index: 50;
+  background-color: hsla(var(--background) / 0.95);
+  backdrop-filter: blur(4px);
+  transform: translateX(-100%); /* Hidden by default */
+  transition: transform 0.3s ease-in-out;
+  overflow-y: auto;
+}
+
+.panel-mobile.open {
+  transform: translateX(0); /* Visible when open */
+}
+
+.panel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  pointer-events: none;
+}
+
+.panel-overlay.open {
+  opacity: 1;
+  pointer-events: all;
 }

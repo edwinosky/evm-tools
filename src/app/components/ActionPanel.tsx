@@ -9,7 +9,7 @@ import { useSendTransaction, useWaitForTransactionReceipt, useWriteContract } fr
 import { parseEther, parseUnits, erc20Abi } from 'viem';
 
 const ActionButton = ({ href, children, ...props }: { href: string; children: React.ReactNode; [key: string]: any }) => (
-  <Link href={href} {...props} className="block w-full text-center bg-primary text-primary-foreground p-2 rounded-md hover:bg-primary/90 transition-colors">
+  <Link href={href} {...props} className="btn-primary block w-full text-center p-2 rounded-md">
     {children}
   </Link>
 );
@@ -200,7 +200,7 @@ const InlineTransactionForm = ({ token }: { token: any }) => {
       <button
         type="submit"
         disabled={isSending || isConfirming || !toAddress || !amount}
-        className="w-full bg-green-600 text-white p-3 rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+        className="btn-primary w-full p-3 rounded-md disabled:bg-gray-400 disabled:cursor-not-allowed"
       >
         {isSending || isConfirming ? '🔄 Sending...' : `🚀 Send ${token.symbol || 'Token'}`}
       </button>
@@ -274,13 +274,10 @@ const ActionPanel = () => {
 
   return (
     <>
-      <h3 className="text-lg font-bold mb-4 text-card-foreground">{t('panelTitle', 'actions')}</h3>
       <div className="space-y-2">
         <ActionButton href="/balance">{t('viewBalancesButton', 'actions')}</ActionButton>
         <ActionButton href="/create-token">{t('createTokenButton', 'actions')}</ActionButton>
         <ActionButton href="/create-nft">{t('createNftButton', 'actions')}</ActionButton>
-        <ActionButton href="/airdrop">{t('airdropToolsButton', 'actions')}</ActionButton>
-        <ActionButton href="/alphas">Panel Alphas</ActionButton>
 
         <div className="pt-4 mt-4 border-t border-border">
           {/* Render content only after mount to prevent hydration mismatch */}

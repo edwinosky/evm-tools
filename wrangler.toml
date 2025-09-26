@@ -1,9 +1,14 @@
-# This configuration file is for PRODUCTION DEPLOYMENTS.
+# This config is used for both development and production.
 name = "evm-wallet-panel-next"
 compatibility_date = "2024-03-20"
+compatibility_flags = ["nodejs_compat"]
 
 # Point to the worker script that handles API calls and serves static assets.
 main = "workers/src/index.ts"
+
+# Development settings
+[dev]
+port = 8787
 
 # Declaratively bind the static asset directory to the worker.
 # This makes the assets available via `env.ASSETS`.
@@ -17,6 +22,11 @@ enabled = true
 [[kv_namespaces]]
 binding = "EVM_PANEL_KV"
 id = "db1d81cf8e2b4991bbe8af9a039e5974"
+preview_id = "db1d81cf8e2b4991bbe8af9a039e5974"
+
+# Browser Worker binding for Puppeteer
+[browser]
+binding = "BROWSER"
 
 [vars]
 ENVIRONMENT = "production"

@@ -11,7 +11,11 @@ const languages = [
   { code: 'ko', name: '한국어', flag: '🇰🇷' },
 ] as const;
 
-const LanguageSelector: React.FC = () => {
+interface LanguageSelectorProps {
+  isFloating?: boolean;
+}
+
+const LanguageSelector: React.FC<LanguageSelectorProps> = ({ isFloating = false }) => {
   const { currentLanguage, changeLanguage } = useLanguage();
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -21,14 +25,18 @@ const LanguageSelector: React.FC = () => {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted/50 transition-colors"
+        className={`rounded-full flex items-center justify-center hover:bg-muted/50 transition-colors ${
+          isFloating ? 'w-10 h-10 bg-background border border-border shadow-lg' : 'w-8 h-8'
+        }`}
         title={`${current?.name} - Click to change language`}
       >
         <span className="text-lg">{current?.flag}</span>
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-1 w-40 bg-background border border-border rounded-md shadow-lg z-50">
+        <div className={`absolute right-0 w-40 bg-background border border-border rounded-md shadow-lg z-50 ${
+          isFloating ? 'bottom-full mb-2' : 'mt-1'
+        }`}>
           {languages.map((language) => (
             <button
               key={language.code}
