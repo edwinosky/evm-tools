@@ -17,6 +17,7 @@ interface Project {
     discord?: string;
     github?: string;
   };
+  galxeUrl?: string;
   status: 'draft' | 'pending' | 'approved' | 'rejected';
   createdBy: string;
   createdAt: string;
@@ -93,10 +94,10 @@ const ProjectsPanel: React.FC = () => {
   // Status badge component
   const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
     const statusConfig = {
-      draft: { color: 'bg-gray-100 text-gray-800', icon: Edit },
+      draft: { color: 'bg-muted text-muted-foreground', icon: Edit },
       pending: { color: 'bg-yellow-100 text-yellow-800', icon: Eye },
       approved: { color: 'bg-green-100 text-green-800', icon: CheckCircle },
-      rejected: { color: 'bg-red-100 text-red-800', icon: XCircle }
+      rejected: { color: 'bg-destructive text-destructive-foreground', icon: XCircle }
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
@@ -114,10 +115,10 @@ const ProjectsPanel: React.FC = () => {
     <div className="space-y-6">
       {/* Header with Create Button */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900">Gestión de Proyectos</h2>
+        <h2 className="text-section">Gestión de Proyectos</h2>
         <button
           onClick={() => setShowCreateForm(true)}
-          className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+          className="btn btn-primary"
         >
           <Plus size={16} className="mr-2" />
           Nuevo Proyecto
@@ -125,102 +126,104 @@ const ProjectsPanel: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Search */}
-          <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar proyectos..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-            />
+      <div className="card">
+        <div className="card-content p-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Search */}
+            <div className="relative">
+              <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Buscar proyectos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border-input rounded-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:border-input focus-visible:outline-none bg-background"
+              />
+            </div>
+
+            {/* Status Filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="border-input rounded-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:border-input focus-visible:outline-none bg-background px-4 py-3"
+            >
+              <option value="all">Todos los Estados</option>
+              <option value="draft">Borrador</option>
+              <option value="pending">Pendiente</option>
+              <option value="approved">Aprobado</option>
+              <option value="rejected">Rechazado</option>
+            </select>
+
+            {/* Category Filter */}
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="border-input rounded-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:border-input focus-visible:outline-none bg-background px-4 py-3"
+            >
+              <option value="all">Todas las Categorías</option>
+              <option value="DeFi">DeFi</option>
+              <option value="NFT">NFT</option>
+              <option value="GameFi">GameFi</option>
+              <option value="Tools">Tools</option>
+              <option value="Gaming">Gaming</option>
+              <option value="Infrastructure">Infrastructure</option>
+              <option value="Other">Other</option>
+            </select>
+
+            {/* Clear Filters */}
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setStatusFilter('all');
+                setCategoryFilter('all');
+              }}
+              className="btn btn-outline"
+            >
+              Limpiar Filtros
+            </button>
           </div>
-
-          {/* Status Filter */}
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-          >
-            <option value="all">Todos los Estados</option>
-            <option value="draft">Borrador</option>
-            <option value="pending">Pendiente</option>
-            <option value="approved">Aprobado</option>
-            <option value="rejected">Rechazado</option>
-          </select>
-
-          {/* Category Filter */}
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-          >
-            <option value="all">Todas las Categorías</option>
-            <option value="DeFi">DeFi</option>
-            <option value="NFT">NFT</option>
-            <option value="GameFi">GameFi</option>
-            <option value="Tools">Tools</option>
-            <option value="Gaming">Gaming</option>
-            <option value="Infrastructure">Infrastructure</option>
-            <option value="Other">Other</option>
-          </select>
-
-          {/* Clear Filters */}
-          <button
-            onClick={() => {
-              setSearchQuery('');
-              setStatusFilter('all');
-              setCategoryFilter('all');
-            }}
-            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-          >
-            Limpiar Filtros
-          </button>
         </div>
       </div>
 
       {/* Projects Table */}
-      <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+      <div className="card overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-500">
+          <div className="card-content p-8 text-center text-muted-foreground">
             Cargando proyectos...
           </div>
         ) : filteredProjects.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
+          <div className="card-content p-8 text-center text-muted-foreground">
             No se encontraron proyectos
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="bg-muted">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Proyecto
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Categoría
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Estado
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Creado
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-card divide-y divide-border">
                 {filteredProjects.map((project) => (
-                  <tr key={project.id} className="hover:bg-gray-50">
+                  <tr key={project.id} className="hover:bg-accent">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{project.name}</div>
-                        <div className="text-sm text-gray-500 truncate max-w-xs">{project.website}</div>
+                        <div className="text-sm font-medium text-card-foreground">{project.name}</div>
+                        <div className="text-sm text-muted-foreground truncate max-w-xs">{project.website}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -231,26 +234,28 @@ const ProjectsPanel: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <StatusBadge status={project.status} />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                       {new Date(project.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
                         <button
                           onClick={() => {/* TODO: View project details */}}
-                          className="text-gray-600 hover:text-gray-900"
+                          className="text-muted-foreground hover:text-foreground p-2 rounded hover:bg-accent focus-ring"
+                          title="Ver detalles"
                         >
                           <Eye size={16} />
                         </button>
                         <button
                           onClick={() => setEditingProject(project)}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-primary hover:text-primary/80 p-2 rounded hover:bg-accent focus-ring"
+                          title="Editar"
                         >
                           <Edit size={16} />
                         </button>
                         <button
                           onClick={() => handleDeleteProject(project.id, project.name)}
-                          className="text-red-600 hover:text-red-900"
+                          className="text-destructive hover:text-destructive/80 p-2 rounded hover:bg-accent focus-ring"
                           title="Eliminar proyecto"
                         >
                           <Trash2 size={16} />
@@ -297,6 +302,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onClose, onSave }) =
     telegram: project?.socialLinks?.telegram || '',
     discord: project?.socialLinks?.discord || '',
     github: project?.socialLinks?.github || '',
+    galxeUrl: project?.galxeUrl || '',
     status: project?.status || 'draft'
   });
 
@@ -348,37 +354,38 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onClose, onSave }) =
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="card-header">
+          <h3 className="card-title">
             {project ? 'Editar Proyecto' : 'Crear Nuevo Proyecto'}
           </h3>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
+        </div>
+        <div className="card-content">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Nombre del Proyecto *
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-3 py-2 border-input rounded-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:border-input focus-visible:outline-none bg-background"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Categoría
                 </label>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-3 py-2 border-input rounded-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:border-input focus-visible:outline-none bg-background"
                 >
                   <option value="DeFi">DeFi</option>
                   <option value="NFT">NFT</option>
@@ -393,7 +400,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onClose, onSave }) =
 
             {/* Website */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-muted-foreground mb-1">
                 Sitio Web *
               </label>
               <input
@@ -401,28 +408,40 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onClose, onSave }) =
                 value={formData.website}
                 onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                 placeholder="https://..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-3 py-2 border-input rounded-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:border-input focus-visible:outline-none bg-background"
                 required
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-muted-foreground mb-1">
                 Descripción
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-3 py-2 border-input rounded-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:border-input focus-visible:outline-none bg-background"
               />
             </div>
 
             {/* Social Links */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
+                  Galxe
+                </label>
+                <input
+                  type="url"
+                  value={formData.galxeUrl}
+                  onChange={(e) => setFormData({ ...formData, galxeUrl: e.target.value })}
+                  placeholder="https://galxe.com/..."
+                  className="w-full px-3 py-2 border-input rounded-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:border-input focus-visible:outline-none bg-background"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Twitter
                 </label>
                 <input
@@ -430,12 +449,12 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onClose, onSave }) =
                   value={formData.twitter}
                   onChange={(e) => setFormData({ ...formData, twitter: e.target.value })}
                   placeholder="https://twitter.com/..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-3 py-2 border-input rounded-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:border-input focus-visible:outline-none bg-background"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Telegram
                 </label>
                 <input
@@ -443,12 +462,12 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onClose, onSave }) =
                   value={formData.telegram}
                   onChange={(e) => setFormData({ ...formData, telegram: e.target.value })}
                   placeholder="https://t.me/..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-3 py-2 border-input rounded-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:border-input focus-visible:outline-none bg-background"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Discord
                 </label>
                 <input
@@ -456,12 +475,12 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onClose, onSave }) =
                   value={formData.discord}
                   onChange={(e) => setFormData({ ...formData, discord: e.target.value })}
                   placeholder="https://discord.gg/..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-3 py-2 border-input rounded-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:border-input focus-visible:outline-none bg-background"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
                   GitHub
                 </label>
                 <input
@@ -469,7 +488,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onClose, onSave }) =
                   value={formData.github}
                   onChange={(e) => setFormData({ ...formData, github: e.target.value })}
                   placeholder="https://github.com/..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-3 py-2 border-input rounded-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:border-input focus-visible:outline-none bg-background"
                 />
               </div>
             </div>
@@ -477,13 +496,13 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onClose, onSave }) =
             {/* Status - Only for edits */}
             {project && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Estado
                 </label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-3 py-2 border-input rounded-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:border-input focus-visible:outline-none bg-background"
                 >
                   <option value="draft">Borrador</option>
                   <option value="pending">Pendiente</option>
@@ -498,14 +517,14 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onClose, onSave }) =
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 text-muted-foreground border-input rounded-md hover:bg-accent hover:text-accent-foreground focus-ring"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 focus-ring"
               >
                 {saving ? 'Guardando...' : (project ? 'Actualizar' : 'Crear')}
               </button>

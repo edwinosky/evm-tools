@@ -97,7 +97,7 @@ return (
                 <ActionPanel />
               </div>
               <div className="panel-section">
-                <h3 className="text-xl font-bold tracking-tight">{t('generatedAccountsPanelTitle')}</h3>
+                <h3 className="text-xl font-bold tracking-tight">{t('generatedAccountsPanelTitle', 'generatedAccounts')}</h3>
                 <GeneratedAccountsPanel />
               </div>
               <div className="panel-section history-section">

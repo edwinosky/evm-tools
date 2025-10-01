@@ -99,12 +99,12 @@ const TabBar: React.FC = () => {
           />
           <span className="max-w-[120px] truncate">{tab.title}</span>
           {tab.id !== 'list' && (
-            <button
+            <span
               onClick={(e) => handleCloseTab(e, tab.id)}
-              className="ml-2 p-0.5 rounded hover:bg-gray-300 transition-colors"
+              className="ml-2 p-0.5 rounded hover:bg-gray-300 transition-colors cursor-pointer"
             >
               <X size={12} />
-            </button>
+            </span>
           )}
         </button>
       ))}

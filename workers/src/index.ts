@@ -34,6 +34,7 @@ interface AlphaProject {
     discord?: string;
     github?: string;
   };
+  galxeUrl?: string;
   status: 'draft' | 'pending' | 'approved' | 'rejected';
   createdBy: string;
   createdAt: string;
@@ -50,6 +51,10 @@ export interface Env {
   ASSETS: { fetch: (req: Request) => Promise<Response> };
   // Browser Worker for Puppeteer
   BROWSER: any;
+  // Discord Bot Secrets
+  DISCORD_BOT_TOKEN: string;
+  DISCORD_GUILD_ID: string;
+  DISCORD_CHANNEL_ID: string;
 }
 
 // --- Utility Functions ---
@@ -885,6 +890,57 @@ async function handleSignPermit(request: Request, env: Env): Promise<Response> {
 
 // --- Alphas Admin Handlers ---
 
+async function handleDiscordMessages(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const projectName = url.searchParams.get('projectName');
+
+  if (!projectName) {
+    return errorResponse('projectName query parameter is required', 400);
+  }
+
+  if (!env.DISCORD_BOT_TOKEN || !env.DISCORD_CHANNEL_ID) {
+    console.error('Discord secrets not configured in worker environment');
+    return errorResponse('Discord integration not configured on the server', 500);
+  }
+
+  try {
+    const discordApiUrl = `https://discord.com/api/v10/channels/${env.DISCORD_CHANNEL_ID}/messages?limit=20`;
+    
+    const response = await fetch(discordApiUrl, {
+      headers: {
+        'Authorization': `Bot ${env.DISCORD_BOT_TOKEN}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Discord API error: ${response.status} ${errorText}`);
+      return errorResponse('Failed to fetch messages from Discord', response.status);
+    }
+
+    const messages: any[] = await response.json();
+
+    const filteredMessages = messages
+      .filter(msg => msg.content.toLowerCase().includes(projectName.toLowerCase()))
+      .map(msg => ({
+        id: msg.id,
+        content: msg.content,
+        timestamp: msg.timestamp,
+        author: {
+          username: msg.author.username,
+          avatar: msg.author.avatar ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.png` : null
+        },
+        url: `https://discord.com/channels/${env.DISCORD_GUILD_ID}/${env.DISCORD_CHANNEL_ID}/${msg.id}`
+      }));
+
+    return jsonResponse(filteredMessages);
+
+  } catch (error) {
+    console.error('Error in handleDiscordMessages:', error);
+    return errorResponse('An internal error occurred while fetching Discord messages', 500);
+  }
+}
+
 // Initialization endpoint - only works if no roles exist yet
 async function handleAlphasInitAdmin(request: Request, env: Env): Promise<Response> {
   if (request.method !== 'POST') {
@@ -1561,6 +1617,7 @@ export default {
         if (route === 'alphas/admin/init') return await handleAlphasInitAdmin(request, env);
         if (route === 'alphas/admin/roles') return await handleAlphasAdminRoles(request, env);
         if (route === 'alphas/admin/projects') return await handleAlphasProjects(request, env);
+        if (route === 'alphas/discord-feed') return await handleDiscordMessages(request, env);
 
         // New Scraping Routes - Fase 4
         if (route === 'alphas/scrape/social') return await handleScrapeWebsite(request, env);

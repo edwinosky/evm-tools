@@ -2,132 +2,210 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Modern & Elegant Theme */
-:root {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --card: 240 10% 3.9%;
-  --card-foreground: 0 0% 98%;
-  --popover: 240 10% 3.9%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 262.1 83.3% 57.8%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 240 3.7% 15.9%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --accent: 240 3.7% 15.9%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --ring: 262.1 83.3% 57.8%;
-  --radius: 0.5rem;
+/* Modern & Elegant Theme - Light by default, Dark mode support */
+@layer base {
+  :root {
+    --background: 0 0% 100%; /* white */
+    --foreground: 240 10% 3.9%; /* dark */
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 240 10% 3.9%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 210 14% 96%;
+    --accent-foreground: 240 10% 3.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 262.1 83.3% 57.8%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 262.1 83.3% 57.8%;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight;
+  }
+
+  h1 { @apply text-3xl md:text-4xl; }
+  h2 { @apply text-2xl md:text-3xl; }
+  h3 { @apply text-xl md:text-2xl; }
+  h4 { @apply text-lg md:text-xl; }
+
+  p {
+    @apply leading-relaxed;
+  }
 }
 
-body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-family: 'Inter', sans-serif;
+@layer components {
+  /* Custom Button Variants */
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+
+  .btn-destructive {
+    @apply bg-destructive text-destructive-foreground hover:bg-destructive/90;
+  }
+
+  .btn-outline {
+    @apply border border-input hover:bg-accent hover:text-accent-foreground;
+  }
+
+  /* Card Component */
+  .card {
+    @apply bg-card text-card-foreground rounded-lg border shadow-sm;
+  }
+
+  .card-header {
+    @apply flex flex-col space-y-1.5 p-6;
+  }
+
+  .card-title {
+    @apply text-2xl font-semibold leading-none tracking-tight;
+  }
+
+  .card-description {
+    @apply text-sm text-muted-foreground;
+  }
+
+  .card-content {
+    @apply p-6 pt-0;
+  }
+
+  .card-footer {
+    @apply flex items-center p-6 pt-0;
+  }
+
+  /* Badge Component */
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors;
+  }
+
+  /* Panel Styles */
+  .panel {
+    @apply bg-card border border-border rounded-lg shadow-sm;
+  }
+
+  .panel-section {
+    @apply p-6 border-t border-border first:border-t-0 first:pt-0;
+  }
+
+  /* Modern Scrollbar */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-primary rounded-full;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary/80;
+  }
 }
 
-/* Custom button styles */
-.btn-primary {
-  @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300;
+@layer utilities {
+  /* Custom utilities for elevation */
+  .shadow-elevated {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+
+  .shadow-hover {
+    @apply transition-shadow duration-200 hover:shadow-elevated;
+  }
+
+  /* Typography scale */
+  .text-hero {
+    @apply text-4xl md:text-5xl font-bold leading-tight;
+  }
+
+  .text-section {
+    @apply text-2xl md:text-3xl font-semibold leading-tight;
+  }
+
+  /* Spacing scale */
+  .space-section {
+    @apply space-y-8;
+  }
+
+  /* Focus ring for accessibility */
+  .focus-ring {
+    @apply focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
 }
 
-.btn-secondary {
-  @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all duration-300;
+/* Dark mode toggle support */
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
 }
 
-/* Panel styles */
-.action-panel {
-  @apply bg-card border-l border-border p-6 space-y-6;
+html.dark {
+  color-scheme: dark;
 }
 
-.action-panel h3 {
-  @apply text-xl font-bold tracking-tight;
-}
-
-.action-panel .history-section {
-  @apply border-t border-border pt-4;
-}
-
-.action-panel .history-section h3 {
-  @apply mb-4;
-}
-
-.action-panel .history-section .history-list {
-  @apply max-h-60 overflow-y-auto pr-2;
-}
-
-/* Modern scrollbar */
-.history-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.history-list::-webkit-scrollbar-track {
-  background: hsl(var(--secondary));
-}
-
-.history-list::-webkit-scrollbar-thumb {
-  background: hsl(var(--primary));
-  border-radius: 3px;
-}
-
-.history-list::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary) / 0.8);
-}
-
-.action-panel .panel-section {
-  @apply border-t border-border pt-6;
-}
-
-.action-panel .panel-section:first-child {
-  @apply border-t-0 pt-0;
-}
-
-.action-panel .panel-section h3 {
-  @apply mb-4;
-}
-
-.action-panel .history-section .history-list {
-  @apply max-h-80 overflow-y-auto pr-2;
-}
-
-/* Panel styles for mobile */
+/* Mobile Panel Styles - Improved */
 .panel-mobile {
-  position: fixed;
-  top: 0;
-  left: 0; /* Ensure it starts from the left */
-  bottom: 0;
-  z-index: 50;
-  background-color: hsla(var(--background) / 0.95);
-  backdrop-filter: blur(4px);
-  transform: translateX(-100%); /* Hidden by default */
-  transition: transform 0.3s ease-in-out;
-  overflow-y: auto;
+  @apply fixed inset-0 z-50 bg-card/95 backdrop-blur-md overflow-y-auto transition-transform duration-300 ease-in-out;
+  transform: translateX(-100%);
 }
 
 .panel-mobile.open {
-  transform: translateX(0); /* Visible when open */
+  transform: translateX(0);
 }
 
 .panel-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 40;
-  background-color: rgba(0, 0, 0, 0.5);
+  @apply fixed inset-0 z-40 bg-background/80 backdrop-blur-sm transition-opacity duration-300 ease-in-out;
   opacity: 0;
-  transition: opacity 0.3s ease-in-out;
   pointer-events: none;
 }
 
 .panel-overlay.open {
   opacity: 1;
-  pointer-events: all;
+  pointer-events: auto;
 }

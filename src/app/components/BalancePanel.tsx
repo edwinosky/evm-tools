@@ -316,7 +316,7 @@ const BalancePanel = () => {
         </ul>
       );
     }
-    return <p className="text-muted-foreground">{t('balance.noBalancesFound', 'balance')}</p>;
+    return <p className="text-muted-foreground">{t('noBalancesFound', 'balance')}</p>;
   };
 
   const handleDiscoverTokens = async () => {

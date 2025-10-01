@@ -4,8 +4,84 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ExternalLink, Calendar, TrendingUp, Star, Edit3, Save, X } from 'lucide-react';
 import { useTabContext } from '@/context/TabContext';
 import NotesManager from './NotesManager';
-import SocialTimeline from './SocialTimeline';
+import DiscordWidget from './DiscordWidget'; // Importar el nuevo componente
 import { useAppContext } from '@/context/AppContext';
+
+// Helper function to extract Twitter handle from URL (works with both twitter.com and x.com)
+function extractTwitterHandle(url: string): string {
+  const match = url.match(/(?:twitter\.com|x\.com)\/([a-zA-Z0-9_]+)/);
+  return match ? match[1] : '';
+}
+
+// Componente para mostrar Timeline de X/Twitter
+const TwitterTimeline: React.FC<{ twitterUrl: string }> = ({ twitterUrl }) => {
+  const twitterHandle = extractTwitterHandle(twitterUrl);
+
+  if (!twitterHandle) {
+    return (
+      <div className="text-center p-4">
+        <div className="text-gray-500">
+          <ExternalLink className="w-6 h-6 mx-auto mb-2" />
+          <p>No X/Twitter account linked.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Alternative: Show a timeline embed using iFrame
+  const embedUrl = `https://x.com/${twitterHandle}`;
+
+  return (
+    <div className="w-full">
+      <div className="bg-gray-50 border rounded-lg p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 12.676H1.68l7.73-8.835L1.254 1.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 5.126H5.117z"/>
+          </svg>
+          <span className="text-sm font-medium text-gray-700">X Timeline (@{twitterHandle})</span>
+        </div>
+        <div className="bg-white rounded border min-h-[300px] flex flex-col">
+          <div className="p-4 border-b">
+            <p className="text-sm text-gray-600">
+              Recent posts and updates from @{twitterHandle} on X (formerly Twitter)
+            </p>
+          </div>
+          <div className="flex-1 p-4 flex items-center justify-center">
+            <div className="text-center space-y-3">
+              <svg className="w-8 h-8 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div className="space-y-2">
+                <a
+                  href={embedUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
+                >
+                  View @Nitrograph on X
+                </a>
+                <p className="text-xs text-gray-500">
+                  Click to see latest updates
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Extend Window interface for Twitter widgets
+declare global {
+  interface Window {
+    twttr?: {
+      widgets: {
+        load: () => void;
+      };
+    };
+  }
+}
 
 interface Project {
   id: string;
@@ -19,6 +95,7 @@ interface Project {
     discord?: string;
     github?: string;
   };
+  galxeUrl?: string;
   status: 'draft' | 'pending' | 'approved' | 'rejected';
   createdBy: string;
   createdAt: string;
@@ -36,6 +113,7 @@ interface Note {
 
 const ProjectDetail: React.FC<{ projectId: string }> = ({ projectId }) => {
   const { updateTab } = useTabContext();
+  const { address: userAddress } = useAppContext() || {};
   const [project, setProject] = useState<Project | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
@@ -273,34 +351,66 @@ const ProjectDetail: React.FC<{ projectId: string }> = ({ projectId }) => {
         </div>
       </div>
 
-      {useAppContext && (
+      {userAddress && (
         <>
           {/* My Notes Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
             {/* Left Column - Notes Manager */}
             <NotesManager
               projectId={projectId}
-              userAddress={useAppContext().address || ''}
+              userAddress={userAddress || ''}
             />
 
-            {/* Right Column - Social Timeline */}
-            <SocialTimeline
-              projectId={projectId}
-              projectName={project.name}
-              twitterHandle={project.socialLinks.twitter ? extractTwitterHandle(project.socialLinks.twitter) : undefined}
-              discordInvite={project.socialLinks.discord || undefined}
-            />
+            {/* Right Column - Social Feeds */}
+            <div className="space-y-8">
+              {/* X (Twitter) Feed */}
+              <div>
+                <h2 className="h2-alphas mb-4">X Feed</h2>
+                <div className="card">
+                  <div className="card-content">
+                    {project.socialLinks.twitter ? (
+                      <TwitterTimeline twitterUrl={project.socialLinks.twitter} />
+                    ) : (
+                      <p className="text-muted-foreground">No Twitter account linked.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Discord Feed */}
+              {project.socialLinks.discord && (
+                <div>
+                  <h2 className="h2-alphas mb-4">Discord Feed</h2>
+                  <div className="card">
+                    <div className="card-content">
+                      <DiscordWidget 
+                        projectName={project.name} 
+                        discordUrl={project.socialLinks.discord} 
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Galxe Feed */}
+              <div>
+                <h2 className="h2-alphas mb-4">Galxe Activities</h2>
+                <div className="card">
+                  <div className="card-content">
+                    {project.galxeUrl ? (
+                      <p>Galxe widget will be displayed here for: <a href={project.galxeUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{project.galxeUrl}</a></p>
+                    ) : (
+                      <p className="text-muted-foreground">No Galxe profile linked.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </>
       )}
     </div>
   );
-
-  // Helper function to extract Twitter handle from URL
-  function extractTwitterHandle(url: string): string {
-    const match = url.match(/twitter\.com\/(\w+)/);
-    return match ? match[1] : '';
-  }
 };
 
 export default ProjectDetail;

@@ -1,16 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FileText, Users, BarChart3, Menu, X, Home } from 'lucide-react';
+import { FileText, Users, BarChart3, Menu, X, Home, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
-interface AdminNavbarProps {
+interface AdminSidebarProps {
   activeTab: 'projects' | 'users' | 'analytics';
   onTabChange: (tab: 'projects' | 'users' | 'analytics') => void;
 }
 
-const AdminNavbar: React.FC<AdminNavbarProps> = ({ activeTab, onTabChange }) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, onTabChange }) => {
+const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const menuItems = [
     {
@@ -50,10 +50,10 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ activeTab, onTabChange }) => 
             <button
               key={item.key}
               onClick={() => onTabChange(item.key)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm transition-all duration-300 ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm transition-all duration-300 focus-ring ${
                 isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-secondary'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'hover:bg-secondary text-muted-foreground hover:text-foreground'
               }`}
             >
               <Icon size={18} />
@@ -75,10 +75,10 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ activeTab, onTabChange }) => 
               <button
                 key={item.key}
                 onClick={() => onTabChange(item.key)}
-                className={`p-2 rounded-md transition-all duration-300 ${
+                className={`p-2 rounded-md transition-all duration-300 focus-ring ${
                   isActive
                     ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-secondary'
+                    : 'hover:bg-secondary text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <Icon size={20} />
@@ -90,7 +90,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ activeTab, onTabChange }) => 
         {/* Mobile Hamburger */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 rounded-md hover:bg-secondary"
+          className="p-2 rounded-md hover:bg-secondary focus-ring"
         >
           {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
@@ -102,7 +102,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ activeTab, onTabChange }) => 
           <div className="p-4">
             <Link
               href="/alphas"
-              className="block w-full text-left px-4 py-2 rounded-md hover:bg-secondary"
+              className="block w-full text-left px-4 py-2 rounded-md hover:bg-secondary focus-ring"
               onClick={() => setMobileMenuOpen(false)}
             >
               ← Volver a Panel Alphas
@@ -114,4 +114,4 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ activeTab, onTabChange }) => 
   );
 };
 
-export default AdminNavbar;
+export default AdminSidebar;

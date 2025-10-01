@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useLanguage } from '@/context/LanguageContext';
 import Breadcrumbs from '@/app/components/Breadcrumbs';
 import ProjectsGrid from '@/app/components/alphas/ProjectsGrid';
 import ProjectDetail from '@/app/components/alphas/ProjectDetail';
@@ -8,14 +9,15 @@ import TabBar from '@/app/components/alphas/TabBar';
 import { useTabContext } from '@/context/TabContext';
 
 export default function AlphasPage() {
+  const { t } = useLanguage();
   const breadcrumbItems = [
-    { label: 'EVM Tools', href: '/' },
-    { label: 'Panel Alphas' }
+    { label: t('home', 'nav'), href: '/' },
+    { label: t('panelAlphas', 'alphas') }
   ];
 
   const { activeTabId, tabs } = useTabContext();
 
-  // Render different content based on active tab
+  // Render different content based on activeTab
   const renderContent = () => {
     const activeTab = tabs.find(tab => tab.id === activeTabId);
 
@@ -41,11 +43,11 @@ export default function AlphasPage() {
 
       {/* Header con título y descripción */}
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-extrabold mb-4 text-gray-900">
-          Proyectos Alpha
+        <h1 className="text-hero mb-4 text-foreground">
+          {t('alphaPageTitle', 'alphas')}
         </h1>
-        <p className="text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
-          Descubre los proyectos más prometedores con potencial de airdrops
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          {t('alphaPageDescription', 'alphas')}
         </p>
       </div>
 

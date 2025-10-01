@@ -5,7 +5,6 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 
 type Language = 'en' | 'es' | 'zh' | 'ko';
 
-// Complete translations consolidated in single file
 const translations = {
   en: {
     common: {
@@ -19,7 +18,6 @@ const translations = {
       error: 'Error',
       retry: 'Retry',
       close: 'Close',
-      // Panel translations
       transactionHistory: 'Transaction History',
       actions: 'Actions',
       openHistoryPanel: 'Open history panel',
@@ -34,7 +32,6 @@ const translations = {
       copied: 'Copied!',
       deleteTransaction: 'Delete Transaction',
       interact: 'Interact',
-      // Transaction types
       sendPrefix: 'Send',
       deployPrefix: 'Deploy',
       mintPrefix: 'Mint',
@@ -42,7 +39,6 @@ const translations = {
       burnPrefix: 'Burn',
       interactionType: 'Interaction',
       approvePrefix: 'Approve',
-      // Specific transaction types
       deployAirdropStandard: 'Deploy Airdrop Standard',
       deployAirdropWithFee: 'Deploy Airdrop With Fee',
       deployAirdropVesting: 'Deploy Airdrop Vesting',
@@ -59,32 +55,26 @@ const translations = {
       airdropInteraction: 'Airdrop Interaction'
     },
     balance: {
-      // BalancePanel main elements
       panelTitle: 'Balances',
       connectWalletMessage: 'Please connect your wallet to see balances.',
       discoveringMessage: 'Discovering and loading balances...',
       discoveryFailed: 'Discovery failed. You may see partial results.',
       noBalancesFound: 'No token balances found for this address.',
       loading: 'Loading...',
-      // Buttons
       discoveringTokens: '🔍 Discovering...',
       discoverTokens: '🔍 Discover Tokens',
       addingToken: 'Adding...',
       addToken: 'Add',
-      // Input placeholders
       addTokenPlaceholder: 'Add token by address...',
-      // Error messages
       errorPrefix: 'Error:',
       invalidAddress: 'Please enter a valid contract address.',
       addressAlreadyAdded: 'This address has already been added.',
       rpcNotAvailable: 'RPC URL is not available. Cannot verify contract type.',
       unsupportedContractType: 'Could not determine contract type, or it is not a supported token/NFT standard.',
-      // Labels
       nativeToken: 'Native Token',
       unknownToken: 'Unknown Token'
     },
     generatedAccounts: {
-      // GeneratedAccountsPanel
       generatedAccountsPanelTitle: 'Generated Accounts',
       generatingAccount: 'Generating...',
       generateNewAccount: 'Generate New Account',
@@ -133,7 +123,6 @@ const translations = {
       nativeSymbol: 'Native'
     },
     airdropPage: {
-      // AirdropPage
       title: 'Airdrop Tools',
       connectWalletMessage: 'Please connect your wallet to manage airdrops.',
       loadContractPlaceholder: 'Enter contract address to load',
@@ -160,7 +149,6 @@ const translations = {
       snapshotBlockLabel: 'Snapshot Block:',
       feeTokenLabel: 'Fee Token:',
       claimFeeLabel: 'Claim Fee:',
-      // DeployPanel
       walletRequiredError: 'Wallet connection is required to deploy.',
       fieldsRequiredError: 'Token address and airdrop end date are required.',
       vestingDateRequiredError: 'Vesting end date is required for this contract type.',
@@ -187,7 +175,6 @@ const translations = {
       deployConfirming: 'Confirming deployment...',
       deployButton: 'Deploy Contract',
       gasWarning: 'A gas fee will be charged for this transaction.',
-      // OwnerPanel
       ownerPanelTitle: 'Owner Panel',
       transactionSuccess: 'Transaction confirmed successfully!',
       transactionError: 'Error: ',
@@ -212,7 +199,6 @@ const translations = {
       withdrawUnclaimedButton: 'Withdraw Unclaimed',
       emergencyTokenPlaceholder: 'Token address (for emergency withdrawal)',
       emergencyWithdrawButton: 'Emergency Withdraw',
-      // UserPanel
       userPanel_title: 'User Panel',
       userPanel_successMessage: 'Action completed successfully!',
       userPanel_errorPrefix: 'Error: ',
@@ -229,8 +215,29 @@ const translations = {
       userPanel_claimedPrefix: 'Claimed',
       userPanel_yes: 'Yes',
       userPanel_no: 'No',
-      userPanel_processing: 'Processing...',
-      userPanel_noTokensMessage: 'You are not eligible for this airdrop or have no tokens to claim at this time.'
+      userPanel_processing: 'Processing...'
+    },
+    alphas: {
+      panelAlphas: 'Alpha Panel',
+      alphaPageTitle: 'Alpha Projects',
+      alphaPageDescription: 'Discover the most promising projects with airdrop potential',
+      filtersAndSearch: 'Filters and Search',
+      searchProject: 'Search project',
+      searchPlaceholder: 'Search by name, description...',
+      category: 'Category',
+      allCategories: 'All categories',
+      sortBy: 'Sort by',
+      sortNewest: 'Newest',
+      sortOldest: 'Oldest',
+      sortByName: 'By name',
+      clearFilters: 'Clear filters',
+      noProjectsFound: 'No projects found',
+      adjustFilters: 'Try adjusting your search filters',
+      noProjectsAvailable: 'No projects available yet',
+      loadingProjects: 'Loading projects...',
+      errorLoadingProjects: 'Error loading projects',
+      errorConnectingToServer: 'Error connecting to server',
+      loadingMoreProjects: 'Loading more projects...'
     }
   },
   es: {
@@ -245,7 +252,6 @@ const translations = {
       error: 'Error',
       retry: 'Reintentar',
       close: 'Cerrar',
-      // Panel translations
       transactionHistory: 'Historial de Transacciones',
       actions: 'Acciones',
       openHistoryPanel: 'Abrir panel de historial',
@@ -260,7 +266,6 @@ const translations = {
       copied: '¡Copiado!',
       deleteTransaction: 'Eliminar Transacción',
       interact: 'Interactuar',
-      // Transaction types
       sendPrefix: 'Enviar',
       deployPrefix: 'Desplegar',
       mintPrefix: 'Acuñar',
@@ -268,7 +273,6 @@ const translations = {
       burnPrefix: 'Quemar',
       interactionType: 'Interacción',
       approvePrefix: 'Aprobar',
-      // Specific transaction types
       deployAirdropStandard: 'Desplegar Airdrop Estándar',
       deployAirdropWithFee: 'Desplegar Airdrop con Tarifa',
       deployAirdropVesting: 'Desplegar Airdrop Vesting',
@@ -285,32 +289,27 @@ const translations = {
       airdropInteraction: 'Interacción de Airdrop'
     },
     balance: {
-      // BalancePanel main elements
       panelTitle: 'Balances',
       connectWalletMessage: 'Por favor conecta tu billetera para ver balances.',
       discoveringMessage: 'Descubriendo y cargando balances...',
       discoveryFailed: 'Descubrimiento falló. Puede que veas resultados parciales.',
       noBalancesFound: 'No se encontraron balances de token para esta dirección.',
       loading: 'Cargando...',
-      // Buttons
       discoveringTokens: '🔍 Descubriendo...',
       discoverTokens: '🔍 Descubrir Tokens',
       addingToken: 'Agregando...',
       addToken: 'Agregar',
-      // Input placeholders
       addTokenPlaceholder: 'Agregar token por dirección...',
-      // Error messages
       errorPrefix: 'Error:',
       invalidAddress: 'Por favor ingresa una dirección de contrato válida.',
       addressAlreadyAdded: 'Esta dirección ya ha sido agregada.',
       rpcNotAvailable: 'URL de RPC no está disponible. No se puede verificar el tipo de contrato.',
       unsupportedContractType: 'No se pudo determinar el tipo de contrato, o no es un estándar de token/NFT soportado.',
-      // Labels
       nativeToken: 'Token Nativo',
       unknownToken: 'Token Desconocido'
     },
     generatedAccounts: {
-      // GeneratedAccountsPanel
+      generatedAccountsPanelTitle: 'Cuentas Generadas',
       generatingAccount: 'Generando...',
       generateNewAccount: 'Generar Nueva Cuenta',
       noAccountsGenerated: 'Aún no hay cuentas generadas.',
@@ -335,7 +334,7 @@ const translations = {
       tokenCreationTitle: 'Creación de Tokens',
       tokenCreationDesc: 'Crea tus propios tokens ERC-20 personalizados con solo unos clics. Configura nombre del token, símbolo, suministro y funciones avanzadas como minteo, quema y funcionalidad de permiso. Despliega directamente desde la app y comienza a usar tus tokens inmediatamente.',
       nftCreationTitle: 'Creación de NFT',
-      nftCreationDesc: 'Acuña NFTs ERC-721 personalizados con tus propios metadatos e imágenes. Crea activos digitales únicos y despliégulos en la blockchain. Perfecto para artistas, coleccionistas y creadores que buscan lanzar sus propias colecciones NFT.',
+      nftCreationDesc: 'Acuña NFTs ERC-721 personalizados con tus propios metadatos e imágenes. Crea activos digitales únicos y despliégalos en la blockchain. Perfecto para artistas, coleccionistas y creadores que buscan lanzar sus propias colecciones NFT.',
       airdropContractsTitle: 'Contratos de Airdrop',
       airdropContractsDesc: 'Despliega y configura contratos de airdrop para tus tokens. Configura períodos de reclamo, gestiona controles de propietario y distribuye tokens a tu comunidad eficientemente. La interfaz de airdrop te permite gestionar fácilmente todos los aspectos de tu campaña de distribución.',
       tokenInteractionTitle: 'Interacción con Tokens',
@@ -358,21 +357,20 @@ const translations = {
       nativeSymbol: 'Nativo'
     },
     airdropPage: {
-      // AirdropPage
       title: 'Herramientas de Airdrop',
-      connectWalletMessage: 'Por favor, conecta tu billetera para gestionar los airdrops.',
-      loadContractPlaceholder: 'Ingresa la dirección del contrato para cargar',
+      connectWalletMessage: 'Por favor, conecta tu billetera para gestionar airdrops.',
+      loadContractPlaceholder: 'Ingresa dirección del contrato para cargar',
       loadButton: 'Cargar',
       hideDeployButton: 'Ocultar Despliegue',
       deployNewButton: 'Desplegar Nuevo',
       newContractDeployedMessage: 'Nuevo contrato %deployedContractType% desplegado en %address%',
       detectingContractTypeMessage: 'Detectando tipo de contrato para %address%...',
-      invalidAddressError: 'Error: La dirección proporcionada no es válida.',
+      invalidAddressError: 'Error: Dirección inválida proporcionada.',
       contractTypeDetectedMessage: 'Tipo de contrato detectado: %type%. Ahora puedes interactuar con él.',
       actionReceivedMessage: 'Acción recibida. Actualizando datos...',
       contractInfoTitle: 'Información del Contrato',
       addressLabel: 'Dirección:',
-      setupStatusLabel: 'Configurado:',
+      setupStatusLabel: 'Configuración:',
       yes: 'Sí',
       no: 'No',
       tokenLabel: 'Token:',
@@ -385,15 +383,14 @@ const translations = {
       snapshotBlockLabel: 'Bloque de Snapshot:',
       feeTokenLabel: 'Token de Tarifa:',
       claimFeeLabel: 'Tarifa de Reclamo:',
-      // DeployPanel
       walletRequiredError: 'Se requiere conexión con la billetera para desplegar.',
-      fieldsRequiredError: 'La dirección del token y la fecha de finalización del airdrop son obligatorias.',
-      vestingDateRequiredError: 'La fecha de finalización del vesting es obligatoria para este tipo de contrato.',
-      vestingDateFutureError: 'La fecha de finalización del vesting debe ser en el futuro.',
+      fieldsRequiredError: 'Dirección del token y fecha de finalización del airdrop son obligatorias.',
+      vestingDateRequiredError: 'Fecha de finalización del vesting es obligatoria para este tipo de contrato.',
+      vestingDateFutureError: 'Fecha de finalización del vesting debe ser en el futuro.',
       deployTransactionMessage: 'Desplegando transacción para',
-      feeConfigMessage: 'Contrato desplegado. Ahora configurando las tarifas...',
+      feeConfigMessage: 'Contrato desplegado. Ahora configurando configuración de tarifas...',
       deploySuccessMessage: 'Contrato desplegado exitosamente',
-      feeConfigSuccessMessage: '¡Configuración de tarifas exitosa!',
+      feeConfigSuccessMessage: '¡Configuración de tarifas configurada exitosamente!',
       transactionRejected: 'Transacción rechazada por el usuario.',
       deployErrorMessage: 'Error de Despliegue: ',
       panelTitle: 'Desplegar Nuevo Contrato de Airdrop',
@@ -412,14 +409,13 @@ const translations = {
       deployConfirming: 'Confirmando despliegue...',
       deployButton: 'Desplegar Contrato',
       gasWarning: 'Se cobrará una tarifa de gas por esta transacción.',
-      // OwnerPanel
       ownerPanelTitle: 'Panel del Propietario',
       transactionSuccess: '¡Transacción confirmada exitosamente!',
       transactionError: 'Error: ',
       invalidAllocations: 'Error: Verifica las direcciones de los beneficiarios y asegúrate de que las listas coincidan.',
       invalidAmount: 'Error: Monto inválido proporcionado.',
       addingAllocations: 'Agregando asignaciones...',
-      fundingContract: 'Transfiriendo %amount% tokens al contrato...',
+      fundingContract: 'Transferiendo %amount% tokens al contrato...',
       withdrawingUnclaimed: 'Retirando tokens no reclamados...',
       emergencyWithdrawing: 'Realizando retiro de emergencia...',
       step1Title: 'Paso 1: Agregar Asignaciones',
@@ -429,7 +425,7 @@ const translations = {
       addAllocationButton: 'Agregar Asignaciones',
       processing: 'Procesando...',
       step2Title: 'Paso 2: Fondear Contrato de Airdrop',
-      step2Description: 'Transfiere los tokens desde tu billetera al contrato para que puedan ser reclamados.',
+      step2Description: 'Transfiere tokens desde tu billetera al contrato para que puedan ser reclamados.',
       currentBalance: 'Balance actual del contrato:',
       fundAmountPlaceholder: 'Cantidad a fondear',
       fundButton: 'Fondear Contrato',
@@ -437,7 +433,6 @@ const translations = {
       withdrawUnclaimedButton: 'Retirar No Reclamados',
       emergencyTokenPlaceholder: 'Dirección del token (para retiro de emergencia)',
       emergencyWithdrawButton: 'Retiro de Emergencia',
-      // UserPanel
       userPanel_title: 'Panel de Usuario',
       userPanel_successMessage: '¡Acción completada exitosamente!',
       userPanel_errorPrefix: 'Error: ',
@@ -454,8 +449,29 @@ const translations = {
       userPanel_claimedPrefix: 'Reclamado',
       userPanel_yes: 'Sí',
       userPanel_no: 'No',
-      userPanel_processing: 'Procesando...',
-      userPanel_noTokensMessage: 'No eres elegible para este airdrop o no tienes tokens para reclamar en este momento.'
+      userPanel_processing: 'Procesando...'
+    },
+    alphas: {
+      panelAlphas: 'Panel Alpha',
+      alphaPageTitle: 'Proyectos Alpha',
+      alphaPageDescription: 'Descubre los proyectos más prometedores con potencial de airdrop',
+      filtersAndSearch: 'Filtros y Búsqueda',
+      searchProject: 'Buscar proyecto',
+      searchPlaceholder: 'Buscar por nombre, descripción...',
+      category: 'Categoría',
+      allCategories: 'Todas las categorías',
+      sortBy: 'Ordenar por',
+      sortNewest: 'Más recientes',
+      sortOldest: 'Más antiguos',
+      sortByName: 'Por nombre',
+      clearFilters: 'Limpiar filtros',
+      noProjectsFound: 'No se encontraron proyectos',
+      adjustFilters: 'Prueba ajustar tus filtros de búsqueda',
+      noProjectsAvailable: 'Aún no hay proyectos disponibles',
+      loadingProjects: 'Cargando proyectos...',
+      errorLoadingProjects: 'Error cargando proyectos',
+      errorConnectingToServer: 'Error conectando con el servidor',
+      loadingMoreProjects: 'Cargando más proyectos...'
     }
   },
   zh: {
@@ -470,7 +486,6 @@ const translations = {
       error: '错误',
       retry: '重试',
       close: '关闭',
-      // Panel translations
       transactionHistory: '交易历史',
       actions: '操作',
       openHistoryPanel: '打开历史面板',
@@ -480,12 +495,11 @@ const translations = {
       noTransactionsYet: '暂无交易。',
       clearTransactionHistoryConfirm: '您确定要清除所有交易历史吗？此操作无法撤销。',
       clearAllHistory: '清除所有历史',
-      hash: '哈希：',
-      contract: '合约：',
-      copied: '已复制！',
+      hash: '哈希:',
+      contract: '合约:',
+      copied: '已复制!',
       deleteTransaction: '删除交易',
       interact: '交互',
-      // Transaction types
       sendPrefix: '发送',
       deployPrefix: '部署',
       mintPrefix: '铸造',
@@ -493,7 +507,6 @@ const translations = {
       burnPrefix: '销毁',
       interactionType: '交互',
       approvePrefix: '批准',
-      // Specific transaction types
       deployAirdropStandard: '部署标准空投',
       deployAirdropWithFee: '部署带费空投',
       deployAirdropVesting: '部署归属空投',
@@ -508,6 +521,34 @@ const translations = {
       createTokenInteraction: '创建代币交互',
       createNftInteraction: '创建NFT交互',
       airdropInteraction: '空投交互'
+    },
+    balance: {
+      panelTitle: '余额',
+      connectWalletMessage: '请连接您的钱包以查看余额。',
+      discoveringMessage: '发现和加载余额中...',
+      discoveryFailed: '发现失败。您可能会看到部分结果。',
+      noBalancesFound: '未找到此地址的代币余额。',
+      loading: '加载中...',
+      discoveringTokens: '🔍 发现中...',
+      discoverTokens: '🔍 发现代币',
+      addingToken: '添加中...',
+      addToken: '添加',
+      addTokenPlaceholder: '通过地址添加代币...',
+      errorPrefix: '错误:',
+      invalidAddress: '请输入有效的合约地址。',
+      addressAlreadyAdded: '此地址已被添加。',
+      rpcNotAvailable: 'RPC URL 不可用。无法验证合约类型。',
+      unsupportedContractType: '无法确定合约类型，或不支持的代币/NFT标准。',
+      nativeToken: '原生代币',
+      unknownToken: '未知代币'
+    },
+    generatedAccounts: {
+      generatedAccountsPanelTitle: '生成的账户',
+      generatingAccount: '生成中...',
+      generateNewAccount: '生成新账户',
+      noAccountsGenerated: '尚未生成账户。',
+      address: '地址:',
+      privateKey: '私钥:'
     },
     nav: {
       home: '首页',
@@ -533,10 +574,9 @@ const translations = {
       tokenInteractionTitle: '代币交互',
       tokenInteractionDesc: '将代币发送到其他地址、检查余额并与现有的智能合约进行交互。直观的界面让您可以轻松进行交易并在不同网络上管理资产。',
       dashboardMessage: '此仪表板作为您的中央控制面板。从您的余额中选择资产开始，或者使用右侧的操作面板创建新资产。您的交易历史可在左侧面板中查看。',
-      developmentMessage: '我们正在积极工作以添加更多功能和工具来扩展平台的功能。敬请关注更新！'
+      developmentMessage: '我们正在积极工作以添加更多功能和工具来扩展平台的功能。敬请关注更新!'
     },
     actions: {
-      panelTitle: '操作',
       connectWalletMessage: '连接钱包开始',
       selectAssetMessage: '选择资产查看操作',
       selectedPrefix: '已选择',
@@ -551,7 +591,6 @@ const translations = {
       nativeSymbol: '原生'
     },
     airdropPage: {
-      // AirdropPage
       title: '空投工具',
       connectWalletMessage: '请连接您的钱包以管理空投。',
       loadContractPlaceholder: '输入合约地址以加载',
@@ -560,7 +599,7 @@ const translations = {
       deployNewButton: '部署新的',
       newContractDeployedMessage: '新的 %deployedContractType% 合约已部署在 %address%',
       detectingContractTypeMessage: '正在检测 %address% 的合约类型...',
-      invalidAddressError: '错误：提供的地址无效。',
+      invalidAddressError: '错误: 提供的地址无效。',
       contractTypeDetectedMessage: '检测到合约类型: %type%。您现在可以与其交互。',
       actionReceivedMessage: '已收到操作。正在刷新数据...',
       contractInfoTitle: '合约信息',
@@ -578,15 +617,14 @@ const translations = {
       snapshotBlockLabel: '快照区块:',
       feeTokenLabel: '费用代币:',
       claimFeeLabel: '领取费用:',
-      // DeployPanel
       walletRequiredError: '部署需要连接钱包。',
       fieldsRequiredError: '需要代币地址和空投结束日期。',
       vestingDateRequiredError: '此合约类型需要归属结束日期。',
       vestingDateFutureError: '归属结束日期必须在未来。',
       deployTransactionMessage: '正在部署交易',
-      feeConfigMessage: '合约已部署。正在配置文件...',
+      feeConfigMessage: '合约已部署。现在配置费用设置...',
       deploySuccessMessage: '合约部署成功',
-      feeConfigSuccessMessage: '费用设置配置成功！',
+      feeConfigSuccessMessage: '费用设置配置成功!',
       transactionRejected: '用户拒绝了交易。',
       deployErrorMessage: '部署错误: ',
       panelTitle: '部署新的空投合约',
@@ -605,34 +643,32 @@ const translations = {
       deployConfirming: '确认部署中...',
       deployButton: '部署合约',
       gasWarning: '此交易将收取燃料费。',
-      // OwnerPanel
       ownerPanelTitle: '所有者面板',
-      transactionSuccess: '交易确认成功！',
+      transactionSuccess: '交易确认成功!',
       transactionError: '错误: ',
-      invalidAllocations: '错误：请检查受益人地址并确保列表匹配。',
-      invalidAmount: '错误：提供的金额无效。',
+      invalidAllocations: '错误: 检查受益人地址并确保列表匹配。',
+      invalidAmount: '错误: 提供的金额无效。',
       addingAllocations: '正在添加分配...',
       fundingContract: '正在向合约转移 %amount% 代币...',
       withdrawingUnclaimed: '正在提取无人领取的代币...',
       emergencyWithdrawing: '正在执行紧急提取...',
-      step1Title: '步骤1：添加分配',
+      step1Title: '步骤1: 添加分配',
       step1Description: '定义谁接收代币以及数量。用逗号分隔地址和金额。',
       beneficiariesPlaceholder: '受益人地址 (0x..., 0x...)',
       amountsPlaceholder: '金额 (100.5, 50, ...)',
       addAllocationButton: '添加分配',
       processing: '处理中...',
-      step2Title: '步骤2：为空投合约注资',
+      step2Title: '步骤2: 为空投合约注资',
       step2Description: '将代币从您的钱包转移到合约中，以便可以领取。',
       currentBalance: '当前合约余额:',
       fundAmountPlaceholder: '注资金额',
       fundButton: '为合约注资',
       contractManagementTitle: '合约管理',
       withdrawUnclaimedButton: '提取无人领取的',
-      emergencyTokenPlaceholder: '代币地址（用于紧急提取）',
+      emergencyTokenPlaceholder: '代币地址 (用于紧急提取)',
       emergencyWithdrawButton: '紧急提取',
-      // UserPanel
       userPanel_title: '用户面板',
-      userPanel_successMessage: '操作成功完成！',
+      userPanel_successMessage: '操作成功完成!',
       userPanel_errorPrefix: '错误: ',
       userPanel_withdrawButton: '提取',
       userPanel_claimVestButton: '领取归属代币',
@@ -647,8 +683,29 @@ const translations = {
       userPanel_claimedPrefix: '已领取',
       userPanel_yes: '是',
       userPanel_no: '否',
-      userPanel_processing: '处理中...',
-      userPanel_noTokensMessage: '您不符合此空投资格或此时没有可领取的代币。'
+      userPanel_processing: '处理中...'
+    },
+    alphas: {
+      panelAlphas: '阿尔法面板',
+      alphaPageTitle: '阿尔法项目',
+      alphaPageDescription: '发现最有潜力的空投项目',
+      filtersAndSearch: '筛选与搜索',
+      searchProject: '搜索项目',
+      searchPlaceholder: '按名称、描述搜索...',
+      category: '类别',
+      allCategories: '所有类别',
+      sortBy: '排序方式',
+      sortNewest: '最新的',
+      sortOldest: '最旧的',
+      sortByName: '按名称',
+      clearFilters: '清除筛选',
+      noProjectsFound: '未找到项目',
+      adjustFilters: '尝试调整您的搜索筛选',
+      noProjectsAvailable: '尚无可用项目',
+      loadingProjects: '正在加载项目...',
+      errorLoadingProjects: '加载项目时出错',
+      errorConnectingToServer: '连接服务器时出错',
+      loadingMoreProjects: '正在加载更多项目...'
     }
   },
   ko: {
@@ -663,7 +720,6 @@ const translations = {
       error: '오류',
       retry: '다시 시도',
       close: '닫기',
-      // Panel translations
       transactionHistory: '거래 내역',
       actions: '액션',
       openHistoryPanel: '내역 패널 열기',
@@ -678,7 +734,6 @@ const translations = {
       copied: '복사됨!',
       deleteTransaction: '거래 삭제',
       interact: '상호작용',
-      // Transaction types
       sendPrefix: '보내기',
       deployPrefix: '배포',
       mintPrefix: '발행',
@@ -686,7 +741,6 @@ const translations = {
       burnPrefix: '소각',
       interactionType: '상호작용',
       approvePrefix: '승인',
-      // Specific transaction types
       deployAirdropStandard: '표준 에어드롭 배포',
       deployAirdropWithFee: '유료 에어드롭 배포',
       deployAirdropVesting: '베스팅 에어드롭 배포',
@@ -701,6 +755,34 @@ const translations = {
       createTokenInteraction: '토큰 생성 상호작용',
       createNftInteraction: 'NFT 생성 상호작용',
       airdropInteraction: '에어드롭 상호작용'
+    },
+    balance: {
+      panelTitle: '잔액',
+      connectWalletMessage: '지갑을 연결하여 잔액을 확인하세요.',
+      discoveringMessage: '발견 및 로딩 중...',
+      discoveryFailed: '발견 실패. 부분 결과가 표시될 수 있습니다.',
+      noBalancesFound: '이 주소에 대한 토큰 잔액을 찾을 수 없습니다.',
+      loading: '로딩 중...',
+      discoveringTokens: '🔍 발견 중...',
+      discoverTokens: '🔍 토큰 발견',
+      addingToken: '추가 중...',
+      addToken: '추가',
+      addTokenPlaceholder: '주소로 토큰 추가...',
+      errorPrefix: '오류:',
+      invalidAddress: '올바른 계약 주소를 입력하세요.',
+      addressAlreadyAdded: '이 주소는 이미 추가되었습니다.',
+      rpcNotAvailable: 'RPC URL을 사용할 수 없습니다. 계약 유형을 확인할 수 없습니다.',
+      unsupportedContractType: '계약 유형을 결정할 수 없거나 지원되지 않는 토큰/NFT 표준입니다.',
+      nativeToken: '네이티브 토큰',
+      unknownToken: '알 수 없는 토큰'
+    },
+    generatedAccounts: {
+      generatedAccountsPanelTitle: '생성된 계정',
+      generatingAccount: '생성 중...',
+      generateNewAccount: '새 계정 생성',
+      noAccountsGenerated: '아직 생성된 계정이 없습니다.',
+      address: '주소:',
+      privateKey: '개인 키:'
     },
     nav: {
       home: '홈',
@@ -725,11 +807,10 @@ const translations = {
       airdropContractsDesc: '토큰에 대한 에어드롭 계약을 배포하고 구성합니다. 청구 기간을 설정하고 소유자 컨트롤을 관리하며 커뮤니티에 효율적으로 토큰을 분배합니다. 에어드롭 인터페이스로 분배 캠페인의 모든 측면을 쉽게 관리할 수 있습니다.',
       tokenInteractionTitle: '토큰 상호작용',
       tokenInteractionDesc: '다른 주소로 토큰을 전송하고 잔액을 확인하며 기존 스마트 계약과 상호작용합니다. 직관적인 인터페이스로 다양한 네트워크에서 트랜잭션을 수행하고 자산을 쉽게 관리할 수 있습니다.',
-      dashboardMessage: '이 대시보드는 중앙 제어 판넬 역할을 합니다. 잔액에서 자산을 선택하여 시작하거나 오른쪽 작업 패널을 사용하여 새 자산을 생성합니다. 거래 내역은 왼쪽 패널에서 볼 수 있습니다.',
+      dashboardMessage: '이 대시보드는 중앙 제어 패널 역할을 합니다. 잔액에서 자산을 선택하여 시작하거나 오른쪽 작업 패널을 사용하여 새 자산을 생성합니다. 거래 내역은 왼쪽 패널에서 볼 수 있습니다.',
       developmentMessage: '플랫폼 기능을 확장할 더 많은 기능과 도구를 추가하기 위해 적극적으로 노력하고 있습니다. 업데이트를 주시하십시오!'
     },
     actions: {
-      panelTitle: '작업',
       connectWalletMessage: '월렛을 연결하여 시작하세요',
       selectAssetMessage: '자산을 선택하여 작업을 확인하세요',
       selectedPrefix: '선택됨',
@@ -744,7 +825,6 @@ const translations = {
       nativeSymbol: '네이티브'
     },
     airdropPage: {
-      // AirdropPage
       title: '에어드롭 도구',
       connectWalletMessage: '에어드롭을 관리하려면 지갑을 연결하십시오.',
       loadContractPlaceholder: '로드할 계약 주소 입력',
@@ -754,7 +834,7 @@ const translations = {
       newContractDeployedMessage: '새 %deployedContractType% 계약이 %address%에 배포되었습니다',
       detectingContractTypeMessage: '%address%의 계약 유형을 감지하는 중...',
       invalidAddressError: '오류: 잘못된 주소가 제공되었습니다.',
-      contractTypeDetectedMessage: '계약 유형 감지됨: %type%. 이제 상호 작용할 수 있습니다.',
+      contractTypeDetectedMessage: '계약 유형 감지됨: %type%. 이제 상호작용할 수 있습니다.',
       actionReceivedMessage: '작업을 받았습니다. 데이터 새로 고침 중...',
       contractInfoTitle: '계약 정보',
       addressLabel: '주소:',
@@ -771,7 +851,6 @@ const translations = {
       snapshotBlockLabel: '스냅샷 블록:',
       feeTokenLabel: '수수료 토큰:',
       claimFeeLabel: '청구 수수료:',
-      // DeployPanel
       walletRequiredError: '배포하려면 지갑 연결이 필요합니다.',
       fieldsRequiredError: '토큰 주소와 에어드롭 종료 날짜가 필요합니다.',
       vestingDateRequiredError: '이 계약 유형에는 베스팅 종료 날짜가 필요합니다.',
@@ -798,18 +877,17 @@ const translations = {
       deployConfirming: '배포 확인 중...',
       deployButton: '계약 배포',
       gasWarning: '이 트랜잭션에 대해 가스 요금이 부과됩니다.',
-      // OwnerPanel
       ownerPanelTitle: '소유자 패널',
       transactionSuccess: '트랜잭션이 성공적으로 확인되었습니다!',
       transactionError: '오류: ',
       invalidAllocations: '오류: 수혜자 주소를 확인하고 목록이 일치하는지 확인하십시오.',
-      invalidAmount: '오류: 잘못된 금액이 제공되었습니다.',
+      invalidAmount: '오류: 제공된 금액이 잘못되었습니다.',
       addingAllocations: '할당 추가 중...',
       fundingContract: '계약에 %amount% 토큰 전송 중...',
       withdrawingUnclaimed: '미청구 토큰 인출 중...',
       emergencyWithdrawing: '긴급 인출 수행 중...',
       step1Title: '1단계: 할당 추가',
-      step1Description: '누가 얼마나 많은 토큰을 받을지 정의합니다. 주소와 금액을 쉼표로 구분합니다.',
+      step1Description: '누가 토큰을 받을지 그리고 몇 개를 받을지 정의합니다. 주소와 금액을 쉼표로 구분합니다.',
       beneficiariesPlaceholder: '수혜자 주소 (0x..., 0x...)',
       amountsPlaceholder: '금액 (100.5, 50, ...)',
       addAllocationButton: '할당 추가',
@@ -823,7 +901,6 @@ const translations = {
       withdrawUnclaimedButton: '미청구 인출',
       emergencyTokenPlaceholder: '토큰 주소 (긴급 인출용)',
       emergencyWithdrawButton: '긴급 인출',
-      // UserPanel
       userPanel_title: '사용자 패널',
       userPanel_successMessage: '작업이 성공적으로 완료되었습니다!',
       userPanel_errorPrefix: '오류: ',
@@ -840,8 +917,29 @@ const translations = {
       userPanel_claimedPrefix: '청구됨',
       userPanel_yes: '예',
       userPanel_no: '아니요',
-      userPanel_processing: '처리 중...',
-      userPanel_noTokensMessage: '이 에어드롭에 해당되지 않거나 현재 청구할 토큰이 없습니다.'
+      userPanel_processing: '처리 중...'
+    },
+    alphas: {
+      panelAlphas: '알파 패널',
+      alphaPageTitle: '알파 프로젝트',
+      alphaPageDescription: '에어드랍 가능성이 있는 가장 유망한 프로젝트를 발견하세요',
+      filtersAndSearch: '필터 및 검색',
+      searchProject: '프로젝트 검색',
+      searchPlaceholder: '이름, 설명으로 검색...',
+      category: '카테고리',
+      allCategories: '모든 카테고리',
+      sortBy: '정렬 기준',
+      sortNewest: '최신순',
+      sortOldest: '오래된순',
+      sortByName: '이름순',
+      clearFilters: '필터 지우기',
+      noProjectsFound: '프로젝트를 찾을 수 없습니다',
+      adjustFilters: '검색 필터를 조정해 보세요',
+      noProjectsAvailable: '아직 사용 가능한 프로젝트가 없습니다',
+      loadingProjects: '프로젝트 로드 중...',
+      errorLoadingProjects: '프로젝트를 로드하는 중 오류가 발생했습니다',
+      errorConnectingToServer: '서버에 연결하는 중 오류가 발생했습니다',
+      loadingMoreProjects: '더 많은 프로젝트를 로드하는 중...'
     }
   }
 };
@@ -936,7 +1034,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   return (
     <LanguageContext.Provider value={value}>
-    {children}
-  </LanguageContext.Provider>
+      {children}
+    </LanguageContext.Provider>
   );
 };
