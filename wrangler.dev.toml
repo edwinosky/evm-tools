@@ -1,7 +1,7 @@
 # This configuration file is for LOCAL DEVELOPMENT ONLY.
 # It tells `wrangler dev` to run your worker's source code directly.
 
-name = "evm-wallet-panel-next-dev"
+name = "evm-wallet-panel-next"
 main = "workers/src/index.ts" # Point directly to the source file
 compatibility_date = "2024-03-20"
 

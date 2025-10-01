@@ -942,7 +942,8 @@ async function handleDiscordMessages(request: Request, env: Env): Promise<Respon
 
   try {
     const discordApiUrl = `https://discord.com/api/v10/channels/${env.DISCORD_CHANNEL_ID}/messages?limit=20`;
-    
+
+    console.log(`[Discord] Fetching messages from channel: ${env.DISCORD_CHANNEL_ID}`);
     const response = await fetch(discordApiUrl, {
       headers: {
         'Authorization': `Bot ${env.DISCORD_BOT_TOKEN}`
@@ -951,29 +952,54 @@ async function handleDiscordMessages(request: Request, env: Env): Promise<Respon
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`Discord API error: ${response.status} ${errorText}`);
+      console.error(`[Discord] API error: ${response.status} ${errorText}`);
       return errorResponse('Failed to fetch messages from Discord', response.status);
     }
 
     const messages: any[] = await response.json();
+    console.log(`[Discord] Raw messages count: ${messages.length}`);
+    console.log(`[Discord] Filtering for project name: "${projectName}"`);
 
+    // Log first few messages for debugging
+    messages.slice(0, 3).forEach((msg, idx) => {
+      console.log(`[Discord] Message ${idx + 1}: "${msg.content.substring(0, 100)}..."`);
+      console.log(`[Discord] Contains "${projectName}"?: ${msg.content.toLowerCase().includes(projectName.toLowerCase())}`);
+    });
+
+    // More flexible filtering: check if project name appears as a word boundary
     const filteredMessages = messages
-      .filter(msg => msg.content.toLowerCase().includes(projectName.toLowerCase()))
-      .map(msg => ({
-        id: msg.id,
-        content: msg.content,
-        timestamp: msg.timestamp,
-        author: {
-          username: msg.author.username,
-          avatar: msg.author.avatar ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.png` : null
-        },
-        url: `https://discord.com/channels/${env.DISCORD_GUILD_ID}/${env.DISCORD_CHANNEL_ID}/${msg.id}`
-      }));
+      .filter(msg => {
+        const content = msg.content.toLowerCase();
+        const searchTerm = projectName.toLowerCase();
+
+        // Check if the project name appears as a whole word or as a significant part
+        const containsAsWord = new RegExp(`\\b${searchTerm}\\b`, 'i').test(content);
+        const containsInTitle = content.includes(`${searchTerm}`); // More permissive match
+
+        console.log(`[Discord] "${msg.content.substring(0, 50)}..." - Word match: ${containsAsWord}, Title match: ${containsInTitle}`);
+
+        return containsAsWord || containsInTitle;
+      })
+      .map(msg => {
+        console.log(`[Discord] Including message: "${msg.content.substring(0, 50)}..."`);
+        return {
+          id: msg.id,
+          content: msg.content,
+          timestamp: msg.timestamp,
+          author: {
+            username: msg.author.username,
+            avatar: msg.author.avatar ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.png` : null
+          },
+          url: `https://discord.com/channels/${env.DISCORD_GUILD_ID}/${env.DISCORD_CHANNEL_ID}/${msg.id}`
+        };
+      });
+
+    console.log(`[Discord] Filtered messages count: ${filteredMessages.length}`);
 
     return jsonResponse(filteredMessages);
 
   } catch (error) {
-    console.error('Error in handleDiscordMessages:', error);
+    console.error('[Discord] Error in handleDiscordMessages:', error);
     return errorResponse('An internal error occurred while fetching Discord messages', 500);
   }
 }
