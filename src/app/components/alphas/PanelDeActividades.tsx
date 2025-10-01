@@ -5,51 +5,48 @@ import { useAppContext } from '@/context/AppContext';
 import RegistroPersonal from './RegistroPersonal';
 
 // Basic tabs implementation
+const BasicTabsContext = React.createContext<{
+  activeTab: string;
+  setActiveTab: (value: string) => void;
+} | null>(null);
+
 const BasicTabs = ({ children, defaultValue }: { children: React.ReactNode, defaultValue: string }) => {
   const [activeTab, setActiveTab] = useState(defaultValue);
   return (
-    <div className="w-full">
-      {React.Children.map(children, (child) =>
-        React.isValidElement(child) && child.type === BasicTab ? React.cloneElement(child, { activeTab, setActiveTab }) : child
-      )}
-    </div>
+    <BasicTabsContext.Provider value={{ activeTab, setActiveTab }}>
+      <div className="w-full">{children}</div>
+    </BasicTabsContext.Provider>
   );
 };
 
-const BasicTab = ({ value, children, activeTab, setActiveTab }: { value: string; children: React.ReactNode; activeTab?: string; setActiveTab?: (val: string) => void }) => {
-  return <div className={activeTab === value ? 'block' : 'hidden'}>{children}</div>;
+const BasicTab = ({ value, children }: { value: string; children: React.ReactNode }) => {
+  const context = React.useContext(BasicTabsContext);
+  const isActive = context?.activeTab === value;
+  return <div className={isActive ? 'block' : 'hidden'}>{children}</div>;
 };
 
-const BasicTabsList = ({ children, activeTab, setActiveTab }: { children: React.ReactNode; activeTab?: string; setActiveTab?: (val: string) => void }) => {
-  return (
-    <div className="flex border-b mb-4">
-      {React.Children.map(children, (child) =>
-        React.isValidElement(child) && child.props.value
-          ? React.cloneElement(child, { activeTab, setActiveTab })
-          : child
-      )}
-    </div>
-  );
+const BasicTabsList = ({ children }: { children: React.ReactNode }) => {
+  return <div className="flex border-b mb-4">{children}</div>;
 };
 
-const BasicTabsTrigger = ({ value, children, activeTab, setActiveTab }: {
-  value: string;
-  children: React.ReactNode;
-  activeTab?: string;
-  setActiveTab?: (val: string) => void
-}) => {
+const BasicTabsTrigger = ({ value, children }: { value: string; children: React.ReactNode }) => {
+  const context = React.useContext(BasicTabsContext);
+  const isActive = context?.activeTab === value;
+
   return (
     <button
-      className={`px-4 py-2 font-medium ${activeTab === value ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'}`}
-      onClick={() => setActiveTab?.(value)}
+      className={`px-4 py-2 font-medium ${isActive ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'}`}
+      onClick={() => context?.setActiveTab(value)}
     >
       {children}
     </button>
   );
 };
 
-const BasicTabsContent = ({ value, children, activeTab }: { value: string; children: React.ReactNode; activeTab?: string }) => {
-  return activeTab === value ? <div>{children}</div> : null;
+const BasicTabsContent = ({ value, children }: { value: string; children: React.ReactNode }) => {
+  const context = React.useContext(BasicTabsContext);
+  const isActive = context?.activeTab === value;
+  return isActive ? <div>{children}</div> : null;
 };
 
 interface ProjectData {
