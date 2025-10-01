@@ -960,28 +960,74 @@ async function handleDiscordMessages(request: Request, env: Env): Promise<Respon
     console.log(`[Discord] Raw messages count: ${messages.length}`);
     console.log(`[Discord] Filtering for project name: "${projectName}"`);
 
-    // Log first few messages for debugging
-    messages.slice(0, 3).forEach((msg, idx) => {
-      console.log(`[Discord] Message ${idx + 1}: "${msg.content.substring(0, 100)}..."`);
-      console.log(`[Discord] Contains "${projectName}"?: ${msg.content.toLowerCase().includes(projectName.toLowerCase())}`);
+    // More sophisticated project name matching
+    const createSearchPatterns = (projectName: string): string[] => {
+      const lowerName = projectName.toLowerCase();
+      const patterns: string[] = [];
+
+      // Exact name variations
+      patterns.push(lowerName);
+      patterns.push(lowerName.toUpperCase());
+
+      // Partial matches and derivatives
+      patterns.push(lowerName.substring(0, 4)); // First 4 letters (nitro from nitrogeno)
+      patterns.push(lowerName + "graph"); // Add common suffixes
+      patterns.push(lowerName + "chain");
+      patterns.push(lowerName + "community");
+
+      // Project name is part of a larger word
+      patterns.push(`${lowerName}[a-z]*`); // nitro + any letters after (nitrogeno, nitrogenado)
+
+      return patterns;
+    };
+
+    const searchPatterns = createSearchPatterns(projectName);
+
+    // Log first few messages for debugging (full content)
+    messages.slice(0, 5).forEach((msg, idx) => {
+      console.log(`[Discord] Message ${idx + 1} (ID: ${msg.id}): "${msg.content}"`);
     });
 
-    // More flexible filtering: check if project name appears as a word boundary
+    // Intelligent project name filtering
     const filteredMessages = messages
       .filter(msg => {
         const content = msg.content.toLowerCase();
-        const searchTerm = projectName.toLowerCase();
+        let matchScore = 0;
 
-        // Check if the project name appears as a whole word or as a significant part
-        const containsAsWord = new RegExp(`\\b${searchTerm}\\b`, 'i').test(content);
-        const containsInTitle = content.includes(`${searchTerm}`); // More permissive match
+        // Check exact matches (highest priority)
+        if (new RegExp(`\\b${projectName}\\b`, 'i').test(content)) {
+          matchScore = 10;
+          console.log(`[Discord] Exact word match: "${projectName}" in "${msg.content.substring(0, 100)}"`);
+        }
 
-        console.log(`[Discord] "${msg.content.substring(0, 50)}..." - Word match: ${containsAsWord}, Title match: ${containsInTitle}`);
+        // Check for partial matches and derivatives
+        for (const pattern of searchPatterns.slice(1)) { // Skip first pattern as it's already checked above
+          if (content.includes(pattern)) {
+            matchScore = Math.max(matchScore, 5);
+            console.log(`[Discord] Partial match: "${pattern}" in "${msg.content.substring(0, 100)}"`);
+          }
+        }
 
-        return containsAsWord || containsInTitle;
+        // Check for project name as substring anywhere in content
+        if (content.includes(projectName.toLowerCase())) {
+          matchScore = Math.max(matchScore, 3);
+          console.log(`[Discord] Substring match: "${projectName}" in "${msg.content.substring(0, 100)}"`);
+        }
+
+        // Additional checks for announcements, events, etc.
+        const announcementKeywords = ['announcement', 'townhall', 'town hall', 'update', 'news', 'event', '📣'];
+        if (announcementKeywords.some(keyword => content.includes(keyword))) {
+          matchScore += 2; // Bonus for announcement-like messages
+          console.log(`[Discord] Announcement keywords detected in: "${msg.content.substring(0, 100)}"`);
+        }
+
+        const shouldInclude = matchScore >= 3; // Minimum score to include
+        console.log(`[Discord] Message ${msg.id}: Score ${matchScore}, Include: ${shouldInclude}`);
+
+        return shouldInclude;
       })
       .map(msg => {
-        console.log(`[Discord] Including message: "${msg.content.substring(0, 50)}..."`);
+        console.log(`[Discord] Final include: "${msg.content.substring(0, 100)}..."`);
         return {
           id: msg.id,
           content: msg.content,
