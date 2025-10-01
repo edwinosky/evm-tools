@@ -8,7 +8,7 @@ import { useLanguage } from '@/context/LanguageContext';
 interface Project {
   id: string;
   name: string;
-  category: 'DeFi' | 'NFT' | 'GameFi' | 'Tools' | 'Gaming' | 'Infrastructure' | 'Other';
+  categories: string[];
   website: string;
   description?: string;
   socialLinks: {
@@ -22,6 +22,21 @@ interface Project {
   createdAt: string;
   updatedAt: string;
 }
+
+// Available project categories (sync with backend/worker)
+const PROJECT_CATEGORIES = [
+  'DEFI',
+  'NFT',
+  'GAMEFI',
+  'TOOLS',
+  'GAMING',
+  'INFRASTRUCTURE',
+  'AI',
+  'NODES',
+  'TESTNETS',
+  'RWA',
+  'OTHER'
+] as const;
 
 const PROJECTS_PER_PAGE = 12;
 
@@ -133,21 +148,35 @@ const ProjectsGrid: React.FC = () => {
   }, [loading, hasMore, loadMore]);
 
   // Category badge component
-  const CategoryBadge: React.FC<{ category: string }> = ({ category }) => {
+  const CategoryBadge: React.FC<{ categories: string[] }> = ({ categories }) => {
+    const safeCategories = categories || [];
     const colors: Record<string, string> = {
-      DeFi: 'bg-blue-100 text-blue-800 border-blue-200',
+      DEFI: 'bg-blue-100 text-blue-800 border-blue-200',
       NFT: 'bg-purple-100 text-purple-800 border-purple-200',
-      GameFi: 'bg-green-100 text-green-800 border-green-200',
-      Tools: 'bg-orange-100 text-orange-800 border-orange-200',
-      Gaming: 'bg-pink-100 text-pink-800 border-pink-200',
-      Infrastructure: 'bg-gray-100 text-gray-800 border-gray-200',
-      Other: 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      GAMEFI: 'bg-green-100 text-green-800 border-green-200',
+      TOOLS: 'bg-orange-100 text-orange-800 border-orange-200',
+      GAMING: 'bg-pink-100 text-pink-800 border-pink-200',
+      INFRASTRUCTURE: 'bg-gray-100 text-gray-800 border-gray-200',
+      AI: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+      NODES: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+      TESTNETS: 'bg-lime-100 text-lime-800 border-lime-200',
+      RWA: 'bg-teal-100 text-teal-800 border-teal-200',
+      OTHER: 'bg-yellow-100 text-yellow-800 border-yellow-200'
     };
 
     return (
-      <span className={`badge ${colors[category] || colors.Other}`}>
-        {category}
-      </span>
+      <div className="flex flex-wrap gap-1">
+        {safeCategories.slice(0, 2).map((category, index) => (
+          <span key={index} className={`badge ${colors[category] || colors.OTHER}`}>
+            {category}
+          </span>
+        ))}
+        {safeCategories.length > 2 && (
+          <span className="badge bg-gray-100 text-gray-600 border-gray-200">
+            +{safeCategories.length - 2}
+          </span>
+        )}
+      </div>
     );
   };
 
@@ -215,13 +244,9 @@ const ProjectsGrid: React.FC = () => {
                 className="w-full px-4 py-3 border-input rounded-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:border-input focus-visible:outline-none bg-background appearance-none"
               >
                 <option value="all">{t('allCategories', 'alphas')}</option>
-                <option value="DeFi">DeFi</option>
-                <option value="NFT">NFT</option>
-                <option value="GameFi">GameFi</option>
-                <option value="Tools">Tools</option>
-                <option value="Gaming">Gaming</option>
-                <option value="Infrastructure">Infrastructure</option>
-                <option value="Other">Other</option>
+                {PROJECT_CATEGORIES.map((category) => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
               </select>
             </div>
 
@@ -309,7 +334,7 @@ const ProjectsGrid: React.FC = () => {
                     >
                       {project.name}
                     </h3>
-                    <CategoryBadge category={project.category} />
+                    <CategoryBadge categories={project.categories} />
                   </div>
                   <a
                     href={project.website}

@@ -5,6 +5,7 @@ import { ExternalLink, Calendar, TrendingUp, Star, Edit3, Save, X } from 'lucide
 import { useTabContext } from '@/context/TabContext';
 import NotesManager from './NotesManager';
 import DiscordWidget from './DiscordWidget'; // Importar el nuevo componente
+import PanelDeActividades from './PanelDeActividades'; // Importar el panel de actividades
 import { useAppContext } from '@/context/AppContext';
 
 // Helper function to extract Twitter handle from URL (works with both twitter.com and x.com)
@@ -86,7 +87,7 @@ declare global {
 interface Project {
   id: string;
   name: string;
-  category: string;
+  categories: string[];
   website: string;
   description?: string;
   socialLinks: {
@@ -176,6 +177,10 @@ const ProjectDetail: React.FC<{ projectId: string }> = ({ projectId }) => {
       Tools: 'bg-orange-100 text-orange-800',
       Gaming: 'bg-pink-100 text-pink-800',
       Infrastructure: 'bg-gray-100 text-gray-800',
+      AI: 'bg-emerald-100 text-emerald-800',
+      NODES: 'bg-cyan-100 text-cyan-800',
+      TESTNETS: 'bg-violet-100 text-violet-800',
+      RWA: 'bg-amber-100 text-amber-800',
       Other: 'bg-yellow-100 text-yellow-800'
     };
 
@@ -211,7 +216,9 @@ const ProjectDetail: React.FC<{ projectId: string }> = ({ projectId }) => {
         <div className="flex-1">
           <div className="flex flex-wrap items-center gap-3 mb-3">
             <h1 className="text-2xl font-bold text-gray-900">{project.name}</h1>
-            <CategoryBadge category={project.category} />
+            {project.categories?.map((category, index) => (
+              <CategoryBadge key={index} category={category} />
+            ))}
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
               {project.status}
             </span>
@@ -355,10 +362,10 @@ const ProjectDetail: React.FC<{ projectId: string }> = ({ projectId }) => {
         <>
           {/* My Notes Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-            {/* Left Column - Notes Manager */}
-            <NotesManager
+            {/* Left Column - Activity Panel */}
+            <PanelDeActividades
               projectId={projectId}
-              userAddress={userAddress || ''}
+              projectData={project}
             />
 
             {/* Right Column - Social Feeds */}
@@ -398,9 +405,33 @@ const ProjectDetail: React.FC<{ projectId: string }> = ({ projectId }) => {
                 <div className="card">
                   <div className="card-content">
                     {project.galxeUrl ? (
-                      <p>Galxe widget will be displayed here for: <a href={project.galxeUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{project.galxeUrl}</a></p>
+                      <div className="text-center p-4">
+                        <svg className="w-10 h-10 text-green-500 mx-auto mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                          <path d="m9 12 2 2 4-4"></path>
+                        </svg>
+                        <p className="text-sm text-gray-600 mb-4">
+                          This project has active campaigns on Galxe.
+                        </p>
+                        <a
+                          href={project.galxeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                        >
+                          <ExternalLink size={16} />
+                          <span>View Campaigns</span>
+                        </a>
+                      </div>
                     ) : (
-                      <p className="text-muted-foreground">No Galxe profile linked.</p>
+                      <div className="text-center p-4">
+                        <svg className="w-10 h-10 text-gray-400 mx-auto mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                           <line x1="12" y1="16" x2="12" y2="12"></line>
+                           <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        <p className="text-muted-foreground">No Galxe profile linked.</p>
+                      </div>
                     )}
                   </div>
                 </div>

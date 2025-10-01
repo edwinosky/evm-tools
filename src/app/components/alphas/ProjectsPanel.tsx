@@ -8,7 +8,7 @@ import { useAlphasApi } from '@/lib/alphas-api';
 interface Project {
   id: string;
   name: string;
-  category: 'DeFi' | 'NFT' | 'GameFi' | 'Tools' | 'Gaming' | 'Infrastructure' | 'Other';
+  categories: string[];
   website: string;
   description?: string;
   socialLinks: {
@@ -23,6 +23,21 @@ interface Project {
   createdAt: string;
   updatedAt: string;
 }
+
+// Import the categories from the backend
+const PROJECT_CATEGORIES = [
+  'DEFI',
+  'NFT',
+  'GAMEFI',
+  'TOOLS',
+  'GAMING',
+  'INFRASTRUCTURE',
+  'AI',
+  'NODES',
+  'TESTNETS',
+  'RWA',
+  'OTHER'
+];
 
 const ProjectsPanel: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -86,7 +101,7 @@ const ProjectsPanel: React.FC = () => {
                          project.website.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
-    const matchesCategory = categoryFilter === 'all' || project.category === categoryFilter;
+    const matchesCategory = categoryFilter === 'all' || (project.categories || []).includes(categoryFilter);
 
     return matchesSearch && matchesStatus && matchesCategory;
   });
@@ -161,13 +176,9 @@ const ProjectsPanel: React.FC = () => {
               className="border-input rounded-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:border-input focus-visible:outline-none bg-background px-4 py-3"
             >
               <option value="all">Todas las Categorías</option>
-              <option value="DeFi">DeFi</option>
-              <option value="NFT">NFT</option>
-              <option value="GameFi">GameFi</option>
-              <option value="Tools">Tools</option>
-              <option value="Gaming">Gaming</option>
-              <option value="Infrastructure">Infrastructure</option>
-              <option value="Other">Other</option>
+              {PROJECT_CATEGORIES.map((category) => (
+                <option key={category} value={category}>{category}</option>
+              ))}
             </select>
 
             {/* Clear Filters */}
@@ -226,10 +237,17 @@ const ProjectsPanel: React.FC = () => {
                         <div className="text-sm text-muted-foreground truncate max-w-xs">{project.website}</div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {project.category}
-                      </span>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap gap-1">
+                        {(project.categories || []).slice(0, 3).map((category, catIndex) => (
+                          <span key={catIndex} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {category}
+                          </span>
+                        ))}
+                        {(project.categories || []).length > 3 && (
+                          <span className="text-xs text-gray-500">+{(project.categories || []).length - 3} más</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <StatusBadge status={project.status} />
@@ -295,7 +313,7 @@ interface ProjectFormProps {
 const ProjectForm: React.FC<ProjectFormProps> = ({ project, onClose, onSave }) => {
   const [formData, setFormData] = useState({
     name: project?.name || '',
-    category: project?.category || 'DeFi',
+    categories: project?.categories || [],
     website: project?.website || '',
     description: project?.description || '',
     twitter: project?.socialLinks?.twitter || '',
@@ -314,6 +332,11 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onClose, onSave }) =
 
     if (!formData.name || !formData.website) {
       alert('Nombre y sitio web son requeridos');
+      return;
+    }
+
+    if (formData.categories.length === 0) {
+      alert('Por favor selecciona al menos una categoría');
       return;
     }
 
@@ -364,7 +387,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onClose, onSave }) =
         <div className="card-content">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Nombre del Proyecto *
@@ -377,24 +400,33 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ project, onClose, onSave }) =
                   required
                 />
               </div>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
-                  Categoría
-                </label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
-                  className="w-full px-3 py-2 border-input rounded-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:border-input focus-visible:outline-none bg-background"
-                >
-                  <option value="DeFi">DeFi</option>
-                  <option value="NFT">NFT</option>
-                  <option value="GameFi">GameFi</option>
-                  <option value="Tools">Tools</option>
-                  <option value="Gaming">Gaming</option>
-                  <option value="Infrastructure">Infrastructure</option>
-                  <option value="Other">Other</option>
-                </select>
+            {/* Categories */}
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
+                Categorías *
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {PROJECT_CATEGORIES.map((category) => (
+                  <label key={category} className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.categories.includes(category)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setFormData(prev => ({
+                          ...prev,
+                          categories: checked
+                            ? [...prev.categories, category]
+                            : prev.categories.filter(c => c !== category)
+                        }));
+                      }}
+                      className="rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <span className="text-sm">{category}</span>
+                  </label>
+                ))}
               </div>
             </div>
 

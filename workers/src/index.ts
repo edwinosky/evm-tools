@@ -22,10 +22,27 @@ interface AdminRole {
   permissions: string[];
 }
 
+// New interfaces for enhanced project tracking
+interface ProjectTaskItem {
+  id: string;
+  title: string;
+  description?: string;
+  links?: { url: string; label: string }[];
+  completed: boolean;
+}
+
+interface DevGuideline {
+  id: string;
+  title: string;
+  content: string; // Can contain markdown-like content
+  type: 'setup' | 'guide' | 'code' | 'other';
+  links?: { url: string; label: string }[];
+}
+
 interface AlphaProject {
   id: string;
   name: string;
-  category: 'DeFi' | 'NFT' | 'GameFi' | 'Tools' | 'Gaming' | 'Infrastructure' | 'Other';
+  categories: string[];
   website: string;
   description?: string;
   socialLinks: {
@@ -35,11 +52,31 @@ interface AlphaProject {
     github?: string;
   };
   galxeUrl?: string;
+  // New project-specific data
+  dailyTasks?: ProjectTaskItem[];
+  devTasks?: DevGuideline[];
   status: 'draft' | 'pending' | 'approved' | 'rejected';
   createdBy: string;
   createdAt: string;
   updatedAt: string;
 }
+
+// Available project categories (including new ones)
+export const PROJECT_CATEGORIES = [
+  'DEFI',
+  'NFT',
+  'GAMEFI',
+  'TOOLS',
+  'GAMING',
+  'INFRASTRUCTURE',
+  'AI',
+  'NODES',
+  'TESTNETS',
+  'RWA',
+  'OTHER'
+] as const;
+
+export type ProjectCategory = typeof PROJECT_CATEGORIES[number];
 
 // --- Environment Interface ---
 export interface Env {
@@ -1088,7 +1125,7 @@ async function handleAlphasProjects(request: Request, env: Env): Promise<Respons
 
       // Apply category filter
       if (category && category !== 'all') {
-        projects = projects.filter(p => p.category === category);
+        projects = projects.filter(p => p.categories && p.categories.includes(category));
       }
 
       // Apply search filter
@@ -1149,8 +1186,8 @@ async function handleAlphasProjects(request: Request, env: Env): Promise<Respons
     try {
       const projectData = await request.json() as Omit<AlphaProject, 'id' | 'createdAt' | 'updatedAt'>;
 
-      if (!projectData.name || !projectData.category || !projectData.website) {
-        return errorResponse('name, category, and website are required', 400);
+      if (!projectData.name || !projectData.categories || projectData.categories.length === 0 || !projectData.website) {
+        return errorResponse('name, categories, and website are required', 400);
       }
 
       const projectId = `project_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
