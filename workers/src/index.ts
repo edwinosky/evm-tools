@@ -983,46 +983,65 @@ async function handleDiscordMessages(request: Request, env: Env): Promise<Respon
 
     const searchPatterns = createSearchPatterns(projectName);
 
-    // Log first few messages for debugging (full content)
+    // Log first few messages for debugging (full structure)
     messages.slice(0, 5).forEach((msg, idx) => {
-      console.log(`[Discord] Message ${idx + 1} (ID: ${msg.id}): "${msg.content}"`);
+      console.log(`[Discord] Message ${idx + 1} (ID: ${msg.id}):`, {
+        contentLength: msg.content?.length || 0,
+        embedsCount: msg.embeds?.length || 0,
+        hasAttachments: msg.attachments?.length > 0,
+        hasStickers: msg.stickers?.length > 0,
+        type: msg.type
+      });
+      if (msg.embeds?.length > 0) {
+        console.log(`[Discord] Embed ${idx + 1} titles:`, msg.embeds.map((e: any) => e.title).filter(Boolean));
+        console.log(`[Discord] Embed ${idx + 1} descriptions:`, msg.embeds.map((e: any) => e.description?.substring(0, 100)).filter(Boolean));
+      }
     });
 
     // Intelligent project name filtering
     const filteredMessages = messages
       .filter(msg => {
-        const content = msg.content.toLowerCase();
         let matchScore = 0;
+        let matchedContent = '';
+        let matchedField = '';
 
-        // Check exact matches (highest priority)
-        if (new RegExp(`\\b${projectName}\\b`, 'i').test(content)) {
-          matchScore = 10;
-          console.log(`[Discord] Exact word match: "${projectName}" in "${msg.content.substring(0, 100)}"`);
+        // Search in content field
+        const content = (msg.content || '').toLowerCase();
+        if (content.includes(projectName.toLowerCase())) {
+          matchScore = Math.max(matchScore, 5);
+          matchedContent = msg.content.substring(0, 100);
+          matchedField = 'content';
+          console.log(`[Discord] Found "${projectName}" in content: "${matchedContent}"`);
         }
 
-        // Check for partial matches and derivatives
-        for (const pattern of searchPatterns.slice(1)) { // Skip first pattern as it's already checked above
-          if (content.includes(pattern)) {
-            matchScore = Math.max(matchScore, 5);
-            console.log(`[Discord] Partial match: "${pattern}" in "${msg.content.substring(0, 100)}"`);
+        // Search in embed fields if no match in content
+        if (matchScore === 0 && msg.embeds && msg.embeds.length > 0) {
+          for (const embed of msg.embeds) {
+            const embedTitle = (embed.title || '').toLowerCase();
+            const embedDescription = (embed.description || '').toLowerCase();
+            const embedContent = `${embedTitle} ${embedDescription}`;
+
+            if (embedContent.includes(projectName.toLowerCase())) {
+              matchScore = Math.max(matchScore, 7); // Higher score for embed matches
+              matchedContent = embedContent.substring(0, 100);
+              matchedField = 'embed';
+              console.log(`[Discord] Found "${projectName}" in embed: "${matchedContent}"`);
+              break; // Found a match, no need to check other embeds
+            }
           }
         }
 
-        // Check for project name as substring anywhere in content
-        if (content.includes(projectName.toLowerCase())) {
-          matchScore = Math.max(matchScore, 3);
-          console.log(`[Discord] Substring match: "${projectName}" in "${msg.content.substring(0, 100)}"`);
-        }
-
-        // Additional checks for announcements, events, etc.
+        // Additional bonus for announcements, events, etc.
         const announcementKeywords = ['announcement', 'townhall', 'town hall', 'update', 'news', 'event', '📣'];
-        if (announcementKeywords.some(keyword => content.includes(keyword))) {
+        const embedText = msg.embeds?.map((e: any) => `${e.title || ''} ${e.description || ''}`).join(' ') || '';
+        const fullContent = `${content} ${embedText}`.toLowerCase();
+        if (announcementKeywords.some(keyword => fullContent.includes(keyword))) {
           matchScore += 2; // Bonus for announcement-like messages
-          console.log(`[Discord] Announcement keywords detected in: "${msg.content.substring(0, 100)}"`);
+          console.log(`[Discord] Announcement keywords detected in message ${msg.id}`);
         }
 
         const shouldInclude = matchScore >= 3; // Minimum score to include
-        console.log(`[Discord] Message ${msg.id}: Score ${matchScore}, Include: ${shouldInclude}`);
+        console.log(`[Discord] Message ${msg.id}: Score ${matchScore}, Include: ${shouldInclude} (${matchedField})`);
 
         return shouldInclude;
       })
